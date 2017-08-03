@@ -1,0 +1,23 @@
+SELECT DISTINCT ?floss ?label WHERE {
+  {
+   # is a FOSS
+   ?floss p:P31/ps:P31/wdt:P279* wd:Q506883.
+  } Union {
+   # is a free software
+   ?floss p:P31/ps:P31/wdt:P279* wd:Q341.
+  } Union {
+   # is a opensource software
+   ?floss p:P31/ps:P31/wdt:P279* wd:Q1130645.
+  } Union {
+   # is a software and is a public domain work
+   ?floss p:P31/ps:P31/wdt:P279* wd:Q19652.
+   ?floss p:P31/ps:P31/wdt:P279* wd:Q7397.
+  } Union {
+    # is a software and license is a free license
+    ?floss p:P31/ps:P31/wdt:P279* wd:Q7397.
+    ?floss wdt:P275 ?licens.  
+    ?licens p:P31/ps:P31/(wdt:P31|wdt:P279)* ?kind.
+    VALUES ?kind { wd:Q196294 wd:Q1156659 }.
+  }
+  OPTIONAL { ?floss rdfs:label ?label filter (lang(?label) = "en") .}
+}
