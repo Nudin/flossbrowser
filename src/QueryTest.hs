@@ -3,13 +3,13 @@
 import Str(str)
 
 import Network.URI(escapeURIString,isAllowedInURI)
+import Network.HTTP.Conduit
 
 url :: String
 url = "https://query.wikidata.org/sparql?query="
 
 query :: String
-query = [str|
-SELECT DISTINCT ?floss ?language ?version ?website ?licence ?os WHERE {
+query = [str|SELECT DISTINCT ?floss ?language ?version ?website ?licence ?os WHERE {
   {
    ?floss p:P31/ps:P31/wdt:P279* wd:Q506883.
   } Union {
@@ -32,6 +32,11 @@ SELECT DISTINCT ?floss ?language ?version ?website ?licence ?os WHERE {
   OPTIONAL { ?floss wdt:P306 ?os .}
 } |]
 
+escapedQuery :: String
+escapedQuery = url ++ escapeURIString isAllowedInURI query
 
 main :: IO ()
-main = putStrLn $ url ++ escapeURIString isAllowedInURI query
+main = do
+    -- TODO Note: This function creates a new Manager. It should be avoided in production code.
+    res <- simpleHttp escapedQuery
+    print res
