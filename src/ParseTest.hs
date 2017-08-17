@@ -54,15 +54,13 @@ data Collection = Collection [Software] deriving (Show, Generic)
 data SPARQLResponse = SPARQLResponse Collection deriving (Show, Generic)
 
 instance FromJSON Software where
-  parseJSON (Object o) = 
-    do 
+  parseJSON (Object o) = do
       flossO <- o .: "floss"
       floss <- flossO .: "value"
-      langO <- o .: "language" -- TODO: this has to be optional can be done with (.:?)
-                               -- but I don't get the types right
-      lang <- langO .: "value"
+      lang <- o .:? "language" :: (Parser (Maybe Text))
       return $ Software floss lang
   parseJSON _ = mzero
+
 
 instance FromJSON Collection where
   parseJSON (Object o) =
@@ -82,5 +80,5 @@ main = do
     res <- httpLbs req manager
     let body = responseBody res
     case eitherDecode body :: (Either String SPARQLResponse) of
+        (Left  x) -> print x
         (Right x) -> print x
-        _ -> print ""
