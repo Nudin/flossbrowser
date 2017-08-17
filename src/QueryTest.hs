@@ -1,9 +1,13 @@
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE OverloadedStrings #-}
 
-import Str(str)
+import qualified Data.ByteString.Lazy.Char8 as L8
 
 import Network.URI(escapeURIString,isAllowedInURI)
-import Network.HTTP.Conduit
+import Network.HTTP.Client
+import Network.HTTP.Client.TLS
+
+import Str(str)
 
 url :: String
 url = "https://query.wikidata.org/sparql?query="
@@ -37,6 +41,7 @@ escapedQuery = url ++ escapeURIString isAllowedInURI query
 
 main :: IO ()
 main = do
-    -- TODO Note: This function creates a new Manager. It should be avoided in production code.
-    res <- simpleHttp escapedQuery
-    print res
+    manager <- newManager tlsManagerSettings
+    req <- parseUrl escapedQuery
+    res <- httpLbs req manager
+    print $ responseBody res

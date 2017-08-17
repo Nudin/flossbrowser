@@ -10,7 +10,8 @@ import Data.Aeson.Types
 import Control.Monad
 
 import Network.URI(escapeURIString,isAllowedInURI)
-import Network.HTTP.Conduit
+import Network.HTTP.Client
+import Network.HTTP.Client.TLS
 
 url :: String
 url = "https://query.wikidata.org/sparql?format=json&query="
@@ -76,9 +77,10 @@ instance FromJSON SPARQLResponse where
 
 main :: IO ()
 main = do
-    print "foo"
-    -- TODO Note: This function creates a new Manager. It should be avoided in production code.
-    res <- eitherDecode <$> simpleHttp escapedQuery :: IO (Either String SPARQLResponse)
-    case res of
-      Left err -> putStrLn err
-      Right ps -> print res
+    manager <- newManager tlsManagerSettings
+    req <- parseUrl escapedQuery
+    res <- httpLbs req manager
+    let body = responseBody res
+    case eitherDecode body :: (Either String SPARQLResponse) of
+        (Right x) -> print x
+        _ -> print ""
