@@ -1,17 +1,16 @@
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-import Data.Text
 import Str(str)
-import GHC.Generics
-import Data.Aeson
-import Data.Aeson.Types
 import Control.Monad
+
+import Data.Aeson
 
 import Network.URI(escapeURIString,isAllowedInURI)
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
+
+import Floss.Types
 
 url :: String
 url = "https://query.wikidata.org/sparql?format=json&query="
@@ -42,35 +41,6 @@ query = [str|SELECT DISTINCT ?floss ?language ?version ?website ?licence ?os WHE
 
 escapedQuery :: String
 escapedQuery = url ++ escapeURIString isAllowedInURI query
-
-
--- Datatype for a Software item
-data Software = Software {
-  floss :: !Text,
-  language :: Maybe Text
-  } deriving (Show, Generic)
-
-data Collection = Collection [Software] deriving (Show, Generic)
-data SPARQLResponse = SPARQLResponse Collection deriving (Show, Generic)
-
-instance FromJSON Software where
-  parseJSON (Object o) = do
-      flossO <- o .: "floss"
-      floss <- flossO .: "value"
-      lang <- o .:? "language" :: (Parser (Maybe Text))
-      return $ Software floss lang
-  parseJSON _ = mzero
-
-
-instance FromJSON Collection where
-  parseJSON (Object o) =
-    Collection <$> o .: "bindings"
-  parseJSON _ = mzero
-
-instance FromJSON SPARQLResponse where
-  parseJSON (Object o) =
-    SPARQLResponse <$> o .: "results"
-  parseJSON _ = mzero
 
 
 main :: IO ()
