@@ -1,12 +1,11 @@
 CC=ghc
 FLAGS=
-SRC=
+SRC=Main.hs
 
 all:
-	# $(CC) $(SRC)
+	$(CC) $(SRC)
 	$(CC) QueryTest.hs
 	$(CC) ParseTest.hs
-	$(CC) FlossDB.hs
 
 clean:
 	-@rm $(shell find . -type f -name "*.o")

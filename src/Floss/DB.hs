@@ -8,6 +8,8 @@
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 
+module Floss.DB where
+
 import Data.Text
 import Database.Persist
 import Database.Persist.Sqlite
@@ -15,6 +17,7 @@ import Database.Persist.TH
 
 import Floss.Types
 
+-- DB Schema
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Project
     name Text
@@ -42,5 +45,5 @@ ProjectLicense
     deriving Show
 |]
 
-main :: IO ()
-main = runSqlite ":memory:" $ runMigration migrateAll
+initDB :: IO ()
+initDB = runSqlite ":memory:" $ runMigration migrateAll
