@@ -1,14 +1,17 @@
 CC=ghc
 FLAGS=
-SRC=QueryTest.hs
+SRC=
 
 all:
-	$(CC) $(SRC)
+	# $(CC) $(SRC)
+	$(CC) QueryTest.hs
+	$(CC) ParseTest.hs
+	$(CC) FlossDB.hs
 
 clean:
-	-@rm ./*.o
-	-@rm ./*.hi
-	-@rm ./*.dyn_*
+	-@rm $(shell find . -type f -name "*.o")
+	-@rm $(shell find . -type f -name "*.hi")
+	-@rm $(shell find . -type f -name "*.dyn_*")
 
 purge: clean
 	-rm $(shell find . -type f -executable)
