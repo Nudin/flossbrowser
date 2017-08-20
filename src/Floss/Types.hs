@@ -20,16 +20,30 @@ data Software = Software {
 data Collection = Collection [Software] deriving (Show, Generic)
 data SPARQLResponse = SPARQLResponse Collection deriving (Show, Generic)
 
+{- Monad version -}
+{-
+ -instance FromJSON Software where
+ -    parseJSON (Object o) = do
+ -        projectO <- o        .:  "floss"
+ -        project  <- projectO .:  "value"
+ -        langO  <- o .:? "language" :: (Parser (Maybe Object))
+ -        lang   <- case langO of
+ -                      Nothing  -> return Nothing
+ -                      (Just x) -> x .: "value"
+ -        return $ Software project lang
+ -    parseJSON _ = mzero
+ -}
+
+{- Mixed applicative and monad version -}
 instance FromJSON Software where
-  parseJSON (Object o) = do
-      flossO <- o .: "floss"
-      floss <- flossO .: "value"
-      langO <- o .:? "language" :: (Parser (Maybe Object))
-      lang  <- case langO of
-                    Nothing  -> return Nothing
-                    (Just x) -> x .: "value"
-      return $ Software floss lang
-  parseJSON _ = mzero
+    parseJSON (Object o) =
+        Software <$> do project <- o .:  "floss"
+                        project      .:  "value"
+                 <*> do lang    <- o .:? "language" :: (Parser (Maybe Object))
+                        case lang of
+                             Nothing  -> return Nothing
+                             (Just x) -> x .: "value"
+    parseJSON _ = mzero
 
 instance FromJSON Collection where
   parseJSON (Object o) =
