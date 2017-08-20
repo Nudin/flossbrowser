@@ -11,9 +11,11 @@ import Data.Text
 import GHC.Generics
 import Control.Monad
 
+import URLtoID
+
 -- Datatype for a Software item
 data Software = Software {
-  floss :: !Text,
+  id :: !WikidataItemID,
   language :: Maybe Text,
   website :: Maybe Text,
   version :: Maybe Text
@@ -21,7 +23,7 @@ data Software = Software {
 
 -- Datatype for a Software item with arrays
 data ComplexSoftware = ComplexSoftware {
-  cfloss :: !Text,
+  cid :: !WikidataItemID,
   clanguage :: Maybe [Text]
   } deriving (Show, Generic)
 
@@ -46,7 +48,8 @@ data SPARQLResponse = SPARQLResponse Collection deriving (Show, Generic)
 instance FromJSON Software where
     parseJSON (Object o) =
         Software <$> do project <- o .:  "floss"
-                        project      .:  "value"
+                        projectiri <- project      .:  "value"
+                        return $ urltoid projectiri
                  <*> do lang    <- o .:? "language" :: (Parser (Maybe Object))
                         case lang of
                              Nothing  -> return Nothing
@@ -65,7 +68,8 @@ instance FromJSON Software where
 instance FromJSON ComplexSoftware where
     parseJSON (Object o) =
         ComplexSoftware <$> do project <- o .:  "floss"
-                               project      .:  "value"
+                               projectiri <- project      .:  "value"
+                               return $ urltoid projectiri
                  <*> do lang    <- o .:? "language" :: (Parser (Maybe Object))
                         case lang of
                              Nothing  -> return Nothing
