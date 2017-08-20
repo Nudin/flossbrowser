@@ -14,13 +14,9 @@ import Control.Monad
 -- Datatype for a Software item
 data Software = Software {
   floss :: !Text,
-  language :: Maybe [Text]
-  } deriving (Show, Generic)
-
--- Datatype for a Software item with arrays
-data ComplexSoftware = ComplexSoftware {
-  cfloss :: !Text,
-  clanguage :: Maybe [Text]
+  language :: Maybe Text,
+  website :: Maybe Text,
+  version :: Maybe Text
   } deriving (Show, Generic)
 
 -- Datatype for a Software item with arrays
@@ -53,6 +49,14 @@ instance FromJSON Software where
                         project      .:  "value"
                  <*> do lang    <- o .:? "language" :: (Parser (Maybe Object))
                         case lang of
+                             Nothing  -> return Nothing
+                             (Just x) -> x .: "value"
+                 <*> do web    <- o .:? "website" :: (Parser (Maybe Object))
+                        case web of
+                             Nothing  -> return Nothing
+                             (Just x) -> x .: "value"
+                 <*> do version    <- o .:? "version" :: (Parser (Maybe Object))
+                        case version of
                              Nothing  -> return Nothing
                              (Just x) -> x .: "value"
     parseJSON _ = mzero
