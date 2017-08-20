@@ -14,7 +14,13 @@ import Control.Monad
 -- Datatype for a Software item
 data Software = Software {
   floss :: !Text,
-  language :: Maybe Text
+  language :: Maybe [Text]
+  } deriving (Show, Generic)
+
+-- Datatype for a Software item with arrays
+data ComplexSoftware = ComplexSoftware {
+  cfloss :: !Text,
+  clanguage :: Maybe [Text]
   } deriving (Show, Generic)
 
 -- Datatype for a Software item with arrays
