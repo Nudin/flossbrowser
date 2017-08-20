@@ -17,6 +17,12 @@ data Software = Software {
   language :: Maybe Text
   } deriving (Show, Generic)
 
+-- Datatype for a Software item with arrays
+data ComplexSoftware = ComplexSoftware {
+  cfloss :: !Text,
+  clanguage :: Maybe [Text]
+  } deriving (Show, Generic)
+
 data Collection = Collection [Software] deriving (Show, Generic)
 data SPARQLResponse = SPARQLResponse Collection deriving (Show, Generic)
 
@@ -43,6 +49,19 @@ instance FromJSON Software where
                         case lang of
                              Nothing  -> return Nothing
                              (Just x) -> x .: "value"
+    parseJSON _ = mzero
+
+{- Mixed applicative and monad version, with array -}
+instance FromJSON ComplexSoftware where
+    parseJSON (Object o) =
+        ComplexSoftware <$> do project <- o .:  "floss"
+                               project      .:  "value"
+                 <*> do lang    <- o .:? "language" :: (Parser (Maybe Object))
+                        case lang of
+                             Nothing  -> return Nothing
+                             (Just x) -> do 
+                                foo <- x .: "value" :: (Parser (Maybe Text))
+                                return $ sequence $ foo : []
     parseJSON _ = mzero
 
 instance FromJSON Collection where
