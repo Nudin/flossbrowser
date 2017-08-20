@@ -50,5 +50,5 @@ main = do
     res <- httpLbs req manager
     let body = responseBody res
     case eitherDecode body :: (Either String SPARQLResponse) of
-        (Left  x) -> print x
         (Right x) -> print x
+        (Left  x) -> print x

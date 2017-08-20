@@ -24,7 +24,10 @@ instance FromJSON Software where
   parseJSON (Object o) = do
       flossO <- o .: "floss"
       floss <- flossO .: "value"
-      lang <- o .:? "language" :: (Parser (Maybe Text))
+      langO <- o .:? "language" :: (Parser (Maybe Object))
+      lang  <- case langO of
+                    Nothing  -> return Nothing
+                    (Just x) -> x .: "value"
       return $ Software floss lang
   parseJSON _ = mzero
 
