@@ -21,7 +21,7 @@ url :: String
 url = "https://query.wikidata.org/sparql?format=json&query="
 
 query :: String
-query = [str|SELECT DISTINCT ?floss ?language ?version ?website ?licence ?os WHERE {
+query = [str|SELECT DISTINCT ?floss ?name ?language ?version ?website ?licence ?os WHERE {
   {
    ?floss p:P31/ps:P31/wdt:P279* wd:Q506883.
   } Union {
@@ -42,6 +42,8 @@ query = [str|SELECT DISTINCT ?floss ?language ?version ?website ?licence ?os WHE
   OPTIONAL { ?floss wdt:P856 ?website .}
   OPTIONAL { ?floss wdt:P275 ?licence .}
   OPTIONAL { ?floss wdt:P306 ?os .}
+
+  OPTIONAL { ?floss rdfs:label ?name filter (lang(?name) = "en") .}
 } Limit 10 |]
 
 escapedQuery :: String

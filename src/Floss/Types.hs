@@ -15,7 +15,8 @@ import URLtoID
 
 -- Datatype for a Software item
 data Software = Software {
-  id :: !WikidataItemID,
+  qid :: !WikidataItemID,
+  name :: Maybe Text,
   language :: Maybe Text,
   website :: Maybe Text,
   version :: Maybe Text
@@ -50,6 +51,10 @@ instance FromJSON Software where
         Software <$> do project <- o .:  "floss"
                         projectiri <- project      .:  "value"
                         return $ urltoid projectiri
+                 <*> do name    <- o .:? "name" :: (Parser (Maybe Object))
+                        case name of
+                             Nothing  -> return Nothing
+                             (Just x) -> x .: "value"
                  <*> do lang    <- o .:? "language" :: (Parser (Maybe Object))
                         case lang of
                              Nothing  -> return Nothing

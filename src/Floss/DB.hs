@@ -20,17 +20,15 @@ import Floss.Types
 -- DB Schema
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Project
-    name Text
-    description Text
-    link URL
-    logo URL
-    img  URL
-    fkLang Int
-    fkLicense Int
+    name Text Maybe
+--    description Text
+    link URL Maybe
+--    logo URL
+--    img  URL
     deriving Show
 License
     name Text
-    text Text
+--    text Text
     deriving Show
 Coding
     name Text
