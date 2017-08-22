@@ -17,7 +17,7 @@ import URLtoID
 data Software = Software {
   qid :: !WikidataItemID,
   name :: Maybe Text,
-  language :: Maybe Text,
+  language :: Maybe WikidataItemID,
   website :: Maybe Text,
   version :: Maybe Text
   } deriving (Show, Generic)
@@ -58,7 +58,9 @@ instance FromJSON Software where
                  <*> do lang    <- o .:? "language" :: (Parser (Maybe Object))
                         case lang of
                              Nothing  -> return Nothing
-                             (Just x) -> x .: "value"
+                             (Just x) -> do
+                                foo <- x .: "value"
+                                return $ Just $ urltoid foo
                  <*> do web    <- o .:? "website" :: (Parser (Maybe Object))
                         case web of
                              Nothing  -> return Nothing

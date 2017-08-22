@@ -14,8 +14,14 @@ import Data.Text
 import Database.Persist
 import Database.Persist.Sqlite
 import Database.Persist.TH
+import GHC.Int
+import Control.Monad
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Reader
 
 import Floss.Types
+import Floss.Query
+import URLtoID
 
 -- DB Schema
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
@@ -36,6 +42,7 @@ Coding
 ProjectCoding
     fkProjectId Int
     fkCodingId Int
+    --UniqueMatch fkProjectId fkCodingId
     deriving Show
 ProjectLicense
     fkProjectId Int
@@ -43,5 +50,25 @@ ProjectLicense
     deriving Show
 |]
 
+qidtokey :: (ToBackendKey SqlBackend record, Integral a) => a -> Key record
+qidtokey qid = toSqlKey (fromIntegral qid :: Int64)
+
+--insertsoftware obj = repsert (qidtokey $ qid obj)  $ Project (name obj) (website obj)
+-- ^original version, pointfree:
+insertsoftware = ap (repsert . qidtokey . qid) (liftM2 Project name website)
+
+insertsoftwarecoding qid (Just lid) = insert_ $ ProjectCoding qid lid 
+insertsoftwarecoding _ Nothing = return ()
+
+insertall (Collection []) = return ()
+insertall (Collection (x:xs)) = do
+    insertsoftware x
+    insertsoftwarecoding (qid x) (language x)
+    insertall (Collection xs)
+
 initDB :: IO ()
-initDB = runSqlite ":memory:" $ runMigration migrateAll
+initDB = runSqlite "test.sql" $ do  -- replaced :memory: to test easier
+    runMigration migrateAll
+    col <- liftIO getCollection
+    insertall col
+    return ()

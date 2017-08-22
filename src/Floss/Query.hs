@@ -44,7 +44,7 @@ query = [str|SELECT DISTINCT ?floss ?name ?language ?version ?website ?licence ?
   OPTIONAL { ?floss wdt:P306 ?os .}
 
   OPTIONAL { ?floss rdfs:label ?name filter (lang(?name) = "en") .}
-} Limit 10 |]
+} Limit 100 |]
 
 escapedQuery :: String
 escapedQuery = url ++ escapeURIString isAllowedInURI query
