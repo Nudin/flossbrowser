@@ -68,7 +68,6 @@ insertall (Collection (x:xs)) = do
     insertsoftwarecoding (qid x) (language x)
     insertall (Collection xs)
 
-insertall' (Collection []) = return ()
 insertall' (Collection l) = do
     mapM_ insertsoftware l
     zipWithM_ insertsoftwarecoding (qid <$> l) (language <$> l)
@@ -77,5 +76,5 @@ initDB :: IO ()
 initDB = runSqlite "test.sql" $ do  -- replaced :memory: to test easier
     runMigration migrateAll
     col <- liftIO getCollection
-    insertall col
+    insertall' col
     return ()
