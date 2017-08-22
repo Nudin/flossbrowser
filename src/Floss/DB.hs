@@ -71,7 +71,7 @@ insertall (Collection (x:xs)) = do
 insertall' (Collection []) = return ()
 insertall' (Collection l) = do
     mapM_ insertsoftware l
-    mapM_ (uncurry insertsoftwarecoding) (Prelude.zip (qid <$> l) (language <$> l))
+    zipWithM_ insertsoftwarecoding (qid <$> l) (language <$> l)
 
 initDB :: IO ()
 initDB = runSqlite "test.sql" $ do  -- replaced :memory: to test easier
