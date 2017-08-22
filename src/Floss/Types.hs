@@ -11,8 +11,6 @@ import Data.Text
 import GHC.Generics
 import Control.Monad
 
-import URLtoID
-
 -- Datatype for a Software item
 data Software = Software {
   qid :: !WikidataItemID,
@@ -97,3 +95,19 @@ instance FromJSON SPARQLResponse where
 
 -- TODO think about using Network.URL instead
 type URL = Text
+
+-- TODO: Decide type, newtype, data or no new type at all?
+--data WikidataItemID = WikidataItemID Int deriving (Show, Eq)
+type WikidataItemID = Int
+
+-- Convert String to Int
+-- fallback -1 ← should we panic instead?
+strtoid :: String -> WikidataItemID
+strtoid = strtoid_ where
+  strtoid_ :: String -> Int
+  strtoid_ "" = -1
+  strtoid_ s = read s
+
+-- Convert IRI of Wikidata-Item to an Int-ID
+urltoid :: String -> WikidataItemID
+urltoid = strtoid . Prelude.drop 32
