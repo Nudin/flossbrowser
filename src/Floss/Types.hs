@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module Floss.Types where
 
@@ -10,6 +10,7 @@ import Data.Aeson.Types
 import Data.Text
 import GHC.Generics
 import Control.Monad
+import qualified Data.Generics as Gen
 
 -- Datatype for a Software item
 data Software = Software {
@@ -18,7 +19,18 @@ data Software = Software {
   language :: Maybe WikidataItemID,
   website :: Maybe Text,
   version :: Maybe Text
-  } deriving (Show, Generic)
+  } deriving (Show, Generic, Gen.Typeable, Gen.Data)
+
+{- Inspired by:
+ - https://stackoverflow.com/questions/22807619/systematically-applying-a-function-to-all-fields-of-a-haskell-record
+ -}
+merge :: Software -> Software -> Software
+merge a b = let b'  = Gen.gzipWithT mergeText a b
+                b'' = Gen.gzipWithT mergeText a b'
+            in Gen.gzipWithT mergeText a b''
+
+mergeText :: (Gen.Data a, Gen.Data b) => a -> b -> b
+mergeText = Gen.mkQ id (\a -> Gen.mkT (\b -> append <$> a <*> b :: Maybe Text))
 
 -- Datatype for a Software item with arrays
 data ComplexSoftware = ComplexSoftware {
