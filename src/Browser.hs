@@ -20,40 +20,43 @@ import Data.Text
 import Database.Persist
 import Database.Persist.Sqlite
 import Database.Persist.TH
+import Control.Monad.Trans.Resource (runResourceT)
+import Control.Monad.Logger (runStderrLoggingT)
 
-data MyApp =
-  MyApp
+data Browser = Browser ConnectionPool
 
-instance Yesod MyApp
-
+instance Yesod Browser
 
 mkYesod
-  "MyApp"
+  "Browser"
   [parseRoutes|
     /                          HomeR        GET
     /software/#String          SoftwareR    GET
 --    /softwarebyid/#ProjectId   SoftwareIdR  GET
 |]
 
+instance YesodPersist Browser where
+    type YesodPersistBackend Browser = SqlBackend
+    runDB action = do
+        Browser pool <- getYesod
+        runSqlPool action pool
+
 getHomeR :: Handler Html
-getHomeR =
-  defaultLayout $ do
+getHomeR = do
     results <- runDB $ selectList []  [LimitTo 100]
-    setTitle "Floss-Browser"
-    toWidget $(hamletFile "./templates/softwarelist.hamlet")
-      where -- TODO: deduplicate function-def
-        runDB action = runSqlite sqliteDB $ (runMigration migrateAll >> action)
+    defaultLayout $ do
+       setTitle "Floss-Browser"
+       toWidget $(hamletFile "./templates/softwarelist.hamlet")
 
 getSoftwareR :: String -> Handler Html
-getSoftwareR software =
-  defaultLayout $ do
+getSoftwareR software = do
     results <- runDB $ selectList [ ProjectName ==. (Just $ pack software) ]  [LimitTo 1]
     liftIO $ print $ results
-    setTitle $ toHtml $ software ++ " "         -- TODO
-    --toWidget $(luciusFile "./foo.lucius")     -- TODO
-    toWidget $(hamletFile "./templates/software.hamlet")
-      where
-        runDB action = runSqlite sqliteDB $ (runMigration migrateAll >> action)
+    defaultLayout $ do
+      setTitle $ toHtml $ software ++ " "         -- TODO
+      --toWidget $(luciusFile "./foo.lucius")     -- TODO
+      toWidget $(hamletFile "./templates/software.hamlet")
 
 main :: IO ()
-main = warp 3000 MyApp
+main = runStderrLoggingT $ withSqlitePool sqliteDB 10 $ \pool -> liftIO $ do
+  warp 3000 $ Browser pool
