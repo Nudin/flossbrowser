@@ -22,12 +22,15 @@ import Control.Monad.Trans.Reader
 import Floss.Types
 import Floss.Query
 
+
+sqliteDB = "./test.sql"
+
 -- DB Schema
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Project
     name Text Maybe
 --    description Text
-    link URL Maybe
+    link Text Maybe
 --    logo URL
 --    img  URL
     deriving Show
@@ -51,30 +54,3 @@ ProjectLicense
 
 qidtokey :: (ToBackendKey SqlBackend record, Integral a) => a -> Key record
 qidtokey qid = toSqlKey (fromIntegral qid :: Int64)
-
---insertsoftware obj = repsert (qidtokey $ qid obj)  $ Project (name obj) (website obj)
--- ^original version, pointfree:
-insertsoftware = ap (repsert . qidtokey . qid) (liftM2 Project name website)
-
-insertsoftwarecoding :: (MonadIO m, PersistStoreWrite backend,
-                         BaseBackend backend ~ SqlBackend) =>
-                         Int -> Maybe Int -> ReaderT backend m ()
-insertsoftwarecoding qid (Just lid) = insert_ $ ProjectCoding qid lid 
-insertsoftwarecoding _ Nothing = return ()
-
-insertall (Collection []) = return ()
-insertall (Collection (x:xs)) = do
-    insertsoftware x
-    insertsoftwarecoding (qid x) (language x)
-    insertall (Collection xs)
-
-insertall' (Collection l) = do
-    mapM_ insertsoftware l
-    zipWithM_ insertsoftwarecoding (qid <$> l) (language <$> l)
-
-initDB :: IO ()
-initDB = runSqlite "test.sql" $ do  -- replaced :memory: to test easier
-    runMigration migrateAll
-    col <- liftIO getCollection
-    insertall' col
-    return ()

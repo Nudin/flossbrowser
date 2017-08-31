@@ -1,4 +1,4 @@
-import Floss.DB
+import Floss.FillDB
 import Floss.Query
 
 main :: IO ()
