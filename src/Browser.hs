@@ -9,7 +9,6 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE ViewPatterns #-}
 
-module Main where
 
 import Floss.DB
 
@@ -43,7 +42,7 @@ getHomeR =
     setTitle "Floss-Browser"
     toWidget $(hamletFile "./templates/softwarelist.hamlet")
       where -- TODO: deduplicate function-def
-        runDB action = runSqlite (pack sqliteDB) $ (runMigration migrateAll >> action)
+        runDB action = runSqlite sqliteDB $ (runMigration migrateAll >> action)
 
 getSoftwareR :: String -> Handler Html
 getSoftwareR software =
@@ -54,7 +53,7 @@ getSoftwareR software =
     --toWidget $(luciusFile "./foo.lucius")     -- TODO
     toWidget $(hamletFile "./templates/software.hamlet")
       where
-        runDB action = runSqlite (pack sqliteDB) $ (runMigration migrateAll >> action)
+        runDB action = runSqlite sqliteDB $ (runMigration migrateAll >> action)
 
 main :: IO ()
 main = warp 3000 MyApp

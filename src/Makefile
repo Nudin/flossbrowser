@@ -2,17 +2,14 @@ CC=ghc
 FLAGS=
 SRC=Main.hs
 
-all: QueryTest ParseTest Main
+all: Main Browser
 .PHONY: all
+
+Browser: Browser.hs
+	$(CC) Browser.hs
 
 Main: $(SRC)
 	$(CC) $(SRC)
-
-QueryTest:
-	$(CC) QueryTest.hs
-
-ParseTest:
-	$(CC) ParseTest.hs
 
 clean:
 	-@rm $(shell find . -type f -name "*.o")

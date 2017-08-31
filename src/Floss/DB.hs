@@ -23,6 +23,7 @@ import Floss.Types
 import Floss.Query
 
 
+sqliteDB :: Text
 sqliteDB = "./test.sql"
 
 -- DB Schema

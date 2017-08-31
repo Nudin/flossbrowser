@@ -27,9 +27,9 @@ import Floss.Query
 -- ^original version, pointfree:
 insertsoftware = ap (repsert . qidtokey . qid) (liftM2 Project name website)
 
-insertsoftwarecoding :: (MonadIO m, PersistStoreWrite backend,
-                         BaseBackend backend ~ SqlBackend) =>
-                         Int -> Maybe Int -> ReaderT backend m ()
+--insertsoftwarecoding :: (MonadIO m, PersistStoreWrite backend,
+--                         BaseBackend backend ~ SqlBackend) =>
+--                         Int -> Maybe Int -> ReaderT backend m ()
 insertsoftwarecoding qid (Just lid) = insert_ $ ProjectCoding qid lid 
 insertsoftwarecoding _ Nothing = return ()
 
