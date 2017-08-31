@@ -1,0 +1,13 @@
+<h1>#{software}
+
+<center> 
+    <a href=@{HomeR}>Home
+    
+<h2> Gefundene Information
+<ul>
+  $forall Entity projectid project <- results
+    $with wikidataid <- fromSqlKey projectid
+        <li> Link: 
+            <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata
+            $maybe link <- (projectLink project)
+                , <a href="#{link}">Webseite
