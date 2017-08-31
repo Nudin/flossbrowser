@@ -60,42 +60,30 @@ sqliteDB = "../test.sql"
 mkYesod
   "MyApp"
   [parseRoutes|
-  /                 HomeR     GET
-  /software/#String SoftwareR GET
-  /foo              FooR      GET
+    /                          HomeR        GET
+    /software/#String          SoftwareR    GET
+--    /softwarebyid/#ProjectId   SoftwareIdR  GET
 |]
 
 getHomeR :: Handler Html
 getHomeR =
   defaultLayout $ do
+    results <- runDB $ selectList []  [LimitTo 100]
     setTitle "Floss-Browser"
-    toWidget
-      [whamlet|
-      <h1>Hello Yesod!1!
-      Some text that 
-      is <i>displayed</i> here.
-      
-      <p> This is a link to 
-        <a href=@{FooR}>foo 
-  |]
+    toWidget $(hamletFile "./softwarelist.hamlet")
+      where -- TODO: deduplicate function-def
+        runDB action = runSqlite sqliteDB $ (runMigration migrateAll >> action)
 
 getSoftwareR :: String -> Handler Html
 getSoftwareR software =
   defaultLayout $ do
-    setTitle $ toHtml software
-    toWidget $(luciusFile "./foo.lucius")
-    toWidget $(hamletFile "./foo.hamlet")
-    runSqlite sqliteDB $ do 
-      runMigration migrateAll
-      test <- selectList [ ProjectName ==. (Just $ pack software) ]  [LimitTo 1]
-      return ()
-
-getFooR :: Handler Html
-getFooR =
-  defaultLayout $ do
-    setTitle "Foo"
-    toWidget $(luciusFile "./foo.lucius")
-    toWidget $(hamletFile "./foo.hamlet")
+    results <- runDB $ selectList [ ProjectName ==. (Just $ pack software) ]  [LimitTo 1]
+    liftIO $ print $ results
+    setTitle $ toHtml $ software ++ " "         -- TODO
+    --toWidget $(luciusFile "./foo.lucius")     -- TODO
+    toWidget $(hamletFile "./software.hamlet")
+      where
+        runDB action = runSqlite sqliteDB $ (runMigration migrateAll >> action)
 
 main :: IO ()
 main = warp 3000 MyApp
