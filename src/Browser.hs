@@ -20,6 +20,10 @@ import Data.Text
 import Database.Persist
 import Database.Persist.Sqlite
 import Database.Persist.TH
+import qualified Database.Esqueleto      as E
+import           Database.Esqueleto      ((^.))
+
+
 import Control.Monad.Trans.Resource (runResourceT)
 import Control.Monad.Logger (runStderrLoggingT)
 
@@ -33,6 +37,8 @@ mkYesod
     /                          HomeR        GET
     /software/#String          SoftwareR    GET
 --    /softwarebyid/#ProjectId   SoftwareIdR  GET
+    /bylicense/#Int          ByLicenseR  GET
+    /bycoding/#Int          ByCodingR  GET
 |]
 
 instance YesodPersist Browser where
@@ -56,6 +62,31 @@ getSoftwareR software = do
       setTitle $ toHtml $ software ++ " "         -- TODO
       --toWidget $(luciusFile "./foo.lucius")     -- TODO
       toWidget $(hamletFile "./templates/software.hamlet")
+
+getByLicenseR :: Int -> Handler Html
+getByLicenseR license = do
+    results <- runDB
+           $ E.select
+           $ E.from $ \(p `E.InnerJoin` pl) -> do
+                E.on $ p ^. ProjectId E.==. pl ^. ProjectLicenseFkProjectId
+                E.where_ ( pl ^. ProjectLicenseFkLicenseId E.==. E.val (qidtokey license) )
+                return p
+    defaultLayout $ do
+       toWidget $(hamletFile "./templates/softwarelist.hamlet")
+       setTitle "Floss-Browser"
+
+getByCodingR :: Int -> Handler Html
+getByCodingR coding = do
+    results <- runDB
+           $ E.select
+           $ E.from $ \(p `E.InnerJoin` pc) -> do
+                E.on $ p ^. ProjectId E.==. pc ^. ProjectCodingFkProjectId
+                E.where_ ( pc ^. ProjectCodingFkCodingId E.==. E.val (qidtokey coding) )
+                return p
+    defaultLayout $ do
+       toWidget $(hamletFile "./templates/softwarelist.hamlet")
+       setTitle "Floss-Browser"
+
 
 main :: IO ()
 main = runStderrLoggingT $ withSqlitePool sqliteDB 10 $ \pool -> liftIO $ do

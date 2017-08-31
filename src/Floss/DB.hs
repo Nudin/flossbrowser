@@ -43,13 +43,13 @@ Coding
     name Text
     deriving Show
 ProjectCoding
-    fkProjectId Int
-    fkCodingId Int
+    fkProjectId ProjectId
+    fkCodingId CodingId
     --UniqueMatch fkProjectId fkCodingId
     deriving Show
 ProjectLicense
-    fkProjectId Int
-    fkLicenseId Int
+    fkProjectId ProjectId
+    fkLicenseId LicenseId
     deriving Show
 |]
 
