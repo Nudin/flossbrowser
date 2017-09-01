@@ -1,0 +1,28 @@
+body {
+    margin-left: 2em;
+}
+h1 {
+    text-align: center;
+}
+h3 {
+    margin: 0px;
+}
+
+.notitle {
+    color: gray;
+}
+.software {
+    margin: 5px;
+    padding-top: 0.5em;
+    padding-right: 1.5em;
+    padding-bottom: 0.5em;
+    padding-left: 1.5em;
+}
+.software:nth-child(even) {
+    background: #f1eaea;
+    border-radius: 10px;
+    }
+.software:nth-child(odd) {
+    background: #edebde;
+    border-radius: 10px;
+    }
