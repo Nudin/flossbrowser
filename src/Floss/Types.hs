@@ -48,10 +48,8 @@ data SPARQLResponse = SPARQLResponse Collection | SPARQLResponseLicenses License
 -- Can't we do this more idiomatic? Or at least prettier?
 maybeValue :: Text -> Object -> Parser (Maybe Text)
 maybeValue field o = do
-  result    <- o .:? field :: (Parser (Maybe Object))
-  case result of
-        Nothing  -> return Nothing
-        (Just x) -> x .: "value"
+  result <- o .:? field
+  mapM (.: "value") result
 
 {- Mixed applicative and monad version -}
 instance FromJSON Software where
@@ -86,8 +84,11 @@ instance FromJSON Collection where
   parseJSON _ = mzero
 
 instance FromJSON SPARQLResponse where
-  parseJSON (Object o) =
-    (SPARQLResponse <$> o .: "results") <|> (SPARQLResponseLicenses <$> o .: "results")
+  parseJSON (Object o) = do
+    (SPARQLResponse <$> res o) <|> (SPARQLResponseLicenses <$> res o)
+      where
+        res :: FromJSON a => Object -> Parser a
+        res = flip (.:) "results"
   parseJSON _ = mzero
 
 -- TODO think about using Network.URL instead
