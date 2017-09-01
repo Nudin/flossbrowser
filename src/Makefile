@@ -1,15 +1,17 @@
 CC=ghc
-FLAGS=
+TMPDIRNAME=build
+FLAGS=-Wall -hidir $(TMPDIRNAME) -odir $(TMPDIRNAME)
 SRC=Main.hs Floss/DB.hs Floss/FillDB.hs Floss/Query.hs Floss/Types.hs Str.hs URLtoID.hs
+.PHONY: purge
 
-all: Main Browser
+all: tmpdir Main Browser
 .PHONY: all
 
 Browser: Browser.hs
 	$(CC) Browser.hs
 
 Main: $(SRC)
-	$(CC) $(SRC)
+	$(CC) $(FLAGS) $(SRC)
 
 clean:
 	-@rm $(shell find . -type f -name "*.o")
@@ -19,4 +21,7 @@ clean:
 
 purge: clean
 	-rm $(shell find . -type f -executable)
-.PHONY: purge
+	-rm -r $(TMPDIRNAME)
+
+tmpdir:
+	mkdir -p $(TMPDIRNAME)
