@@ -45,6 +45,13 @@ mergeText = Gen.mkQ id (\a -> Gen.mkT (\b -> append <$> a <*> b :: Maybe Text))
 data Collection = Collection [Software] deriving (Show, Generic)
 data SPARQLResponse = SPARQLResponse Collection | SPARQLResponseLicenses LicenseList deriving (Show, Generic)
 
+-- Can't we do this more idiomatic? Or at least prettier?
+maybeValue :: Text -> Object -> Parser (Maybe Text)
+maybeValue field o = do
+  result    <- o .:? field :: (Parser (Maybe Object))
+  case result of
+        Nothing  -> return Nothing
+        (Just x) -> x .: "value"
 
 {- Mixed applicative and monad version -}
 instance FromJSON Software where
@@ -52,24 +59,12 @@ instance FromJSON Software where
         Software <$> do project <- o .:  "floss"
                         projectiri <- project      .:  "value"
                         return $ urltoid projectiri
-                 <*> do name    <- o .:? "name" :: (Parser (Maybe Object))
-                        case name of
-                             Nothing  -> return Nothing
-                             (Just x) -> x .: "value"
-                 <*> do lang    <- o .:? "language" :: (Parser (Maybe Object))
-                        case lang of
-                             Nothing  -> return Nothing
-                             (Just x) -> do
-                                foo <- x .: "value"
-                                return $ Just $ urltoid foo
-                 <*> do web    <- o .:? "website" :: (Parser (Maybe Object))
-                        case web of
-                             Nothing  -> return Nothing
-                             (Just x) -> x .: "value"
-                 <*> do version    <- o .:? "version" :: (Parser (Maybe Object))
-                        case version of
-                             Nothing  -> return Nothing
-                             (Just x) -> x .: "value"
+                 <*> maybeValue "name" o
+                 <*> do
+                   x <- (maybeValue "language" o)
+                   return $ fmap (urltoid . unpack) x
+                 <*> maybeValue "website" o
+                 <*> maybeValue "version" o
     parseJSON _ = mzero
 
 instance FromJSON License' where
@@ -77,10 +72,7 @@ instance FromJSON License' where
         License' <$> do lid <- o .:  "license"
                         lidiri <- lid      .:  "value"
                         return $ urltoid lidiri
-                 <*> do name    <- o .:? "licenseLabel" :: (Parser (Maybe Object))
-                        case name of
-                             Nothing  -> return Nothing
-                             (Just x) -> x .: "value"
+                 <*> maybeValue "licenseLabel" o
     parseJSON _ = mzero
 
 instance FromJSON LicenseList where
