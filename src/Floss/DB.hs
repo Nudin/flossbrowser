@@ -40,7 +40,7 @@ License
     name Text Maybe
     deriving Show
 Coding
-    name Text
+    name Text Maybe
     deriving Show
 ProjectCoding
     fkProjectId ProjectId

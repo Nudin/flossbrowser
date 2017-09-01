@@ -5,6 +5,7 @@
 module Floss.Query(
     getCollection,
     getLicenses,
+    getCodings,
 ) where
 
 import Str(str)
@@ -54,6 +55,12 @@ SELECT DISTINCT ?license ?licenseLabel WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 } |]
 
+query_codings = [str|
+SELECT DISTINCT ?language ?languageLabel WHERE {
+  ?free_software wdt:P277 ?language.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+} |]
+
 escapeQuery :: String -> String
 escapeQuery = (url ++) . escapeURIString isAllowedInURI
 
@@ -78,3 +85,14 @@ getLicenses = do
     case mbList of
         (Just (SPARQLResponseLicenses c)) -> return c
         _                         -> return $ LicenseList []
+
+getCodings :: IO CodingList
+getCodings = do
+    manager <- newManager tlsManagerSettings
+    req <- parseUrl $ escapeQuery query_codings
+    res <- httpLbs req manager
+    let body   = responseBody res
+        mbList = decode body :: Maybe SPARQLResponse
+    case mbList of
+        (Just (SPARQLResponseCodings c)) -> return c
+        _                         -> return $ CodingList []

@@ -17,7 +17,8 @@ import qualified Data.Generics as Gen
 data Software = Software {
   qid :: !WikidataItemID,
   name :: Maybe Text,
-  language :: Maybe WikidataItemID,
+  coding  :: Maybe WikidataItemID,
+  license :: Maybe WikidataItemID,
   website :: Maybe Text,
   version :: Maybe Text
   } deriving (Show, Generic, Gen.Typeable, Gen.Data)
@@ -28,6 +29,13 @@ data License' = License' {
 } deriving (Show, Generic, Gen.Typeable, Gen.Data)
 
 data LicenseList = LicenseList [License'] deriving (Show, Generic) 
+
+data Coding' = Coding' {
+  cqid  :: !WikidataItemID,
+  cname :: Maybe Text
+} deriving (Show, Generic, Gen.Typeable, Gen.Data)
+
+data CodingList = CodingList [Coding'] deriving (Show, Generic) 
 
 
 {- Inspired by:
@@ -43,7 +51,10 @@ mergeText = Gen.mkQ id (\a -> Gen.mkT (\b -> append <$> a <*> b :: Maybe Text))
 
 
 data Collection = Collection [Software] deriving (Show, Generic)
-data SPARQLResponse = SPARQLResponse Collection | SPARQLResponseLicenses LicenseList deriving (Show, Generic)
+data SPARQLResponse = SPARQLResponse Collection
+                    | SPARQLResponseLicenses LicenseList
+                    | SPARQLResponseCodings CodingList
+                    deriving (Show, Generic)
 
 -- Can't we do this more idiomatic? Or at least prettier?
 maybeValue :: Text -> Object -> Parser (Maybe Text)
@@ -60,6 +71,9 @@ instance FromJSON Software where
                  <*> maybeValue "name" o
                  <*> do
                    x <- (maybeValue "language" o)
+                   return $ fmap (urltoid . unpack) x
+                 <*> do
+                   x <- (maybeValue "license" o)
                    return $ fmap (urltoid . unpack) x
                  <*> maybeValue "website" o
                  <*> maybeValue "version" o
@@ -78,6 +92,19 @@ instance FromJSON LicenseList where
     LicenseList <$> o .: "bindings"
   parseJSON _ = mzero
 
+instance FromJSON Coding' where
+    parseJSON (Object o) =
+        Coding' <$> do cid <- o .:  "coding"
+                       cidiri <- cid      .:  "value"
+                       return $ urltoid cidiri
+                 <*> maybeValue "licenseLabel" o
+    parseJSON _ = mzero
+
+instance FromJSON CodingList where
+  parseJSON (Object o) =
+    CodingList <$> o .: "bindings"
+  parseJSON _ = mzero
+
 instance FromJSON Collection where
   parseJSON (Object o) =
     Collection <$> o .: "bindings"
@@ -85,7 +112,9 @@ instance FromJSON Collection where
 
 instance FromJSON SPARQLResponse where
   parseJSON (Object o) = do
-    (SPARQLResponse <$> res o) <|> (SPARQLResponseLicenses <$> res o)
+    (SPARQLResponse <$> res o) <|>
+      (SPARQLResponseLicenses <$> res o) <|>
+      (SPARQLResponseCodings <$> res o)
       where
         res :: FromJSON a => Object -> Parser a
         res = flip (.:) "results"
