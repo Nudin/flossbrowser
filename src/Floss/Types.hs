@@ -94,10 +94,10 @@ instance FromJSON LicenseList where
 
 instance FromJSON Coding' where
     parseJSON (Object o) =
-        Coding' <$> do cid <- o .:  "coding"
+        Coding' <$> do cid <- o .:  "language"
                        cidiri <- cid      .:  "value"
                        return $ urltoid cidiri
-                 <*> maybeValue "licenseLabel" o
+                 <*> maybeValue "languageLabel" o
     parseJSON _ = mzero
 
 instance FromJSON CodingList where
