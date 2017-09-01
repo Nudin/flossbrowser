@@ -33,12 +33,6 @@ insertsoftware = ap (repsert . qidtokey . qid) (liftM2 Project name website)
 insertsoftwarecoding qid (Just lid) = insert_ $ ProjectCoding qid lid 
 insertsoftwarecoding _ Nothing = return ()
 
-insertall (Collection []) = return ()
-insertall (Collection (x:xs)) = do
-    insertsoftware x
-    insertsoftwarecoding (qid x) (language x)
-    insertall (Collection xs)
-
 insertall' (Collection l) = do
     mapM_ insertsoftware l
     zipWithM_ insertsoftwarecoding (qid <$> l) (language <$> l)

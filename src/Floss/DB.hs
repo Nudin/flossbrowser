@@ -37,7 +37,6 @@ Project
     deriving Show
 License
     name Text
---    text Text
     deriving Show
 Coding
     name Text

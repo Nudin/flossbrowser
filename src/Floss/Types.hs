@@ -32,28 +32,12 @@ merge a b = let b'  = Gen.gzipWithT mergeText a b
 mergeText :: (Gen.Data a, Gen.Data b) => a -> b -> b
 mergeText = Gen.mkQ id (\a -> Gen.mkT (\b -> append <$> a <*> b :: Maybe Text))
 
--- Datatype for a Software item with arrays
-data ComplexSoftware = ComplexSoftware {
-  cid :: !WikidataItemID,
-  clanguage :: Maybe [Text]
-  } deriving (Show, Generic)
+
 
 data Collection = Collection [Software] deriving (Show, Generic)
 data SPARQLResponse = SPARQLResponse Collection deriving (Show, Generic)
 
-{- Monad version -}
-{-
- -instance FromJSON Software where
- -    parseJSON (Object o) = do
- -        projectO <- o        .:  "floss"
- -        project  <- projectO .:  "value"
- -        langO  <- o .:? "language" :: (Parser (Maybe Object))
- -        lang   <- case langO of
- -                      Nothing  -> return Nothing
- -                      (Just x) -> x .: "value"
- -        return $ Software project lang
- -    parseJSON _ = mzero
- -}
+
 
 {- Mixed applicative and monad version -}
 instance FromJSON Software where
@@ -77,23 +61,14 @@ instance FromJSON Software where
                              (Just x) -> x .: "value"
                  <*> do version    <- o .:? "version" :: (Parser (Maybe Object))
                         case version of
+
                              Nothing  -> return Nothing
                              (Just x) -> x .: "value"
     parseJSON _ = mzero
 
-{- Mixed applicative and monad version, with array -}
-instance FromJSON ComplexSoftware where
-    parseJSON (Object o) =
-        ComplexSoftware <$> do project <- o .:  "floss"
-                               projectiri <- project      .:  "value"
-                               return $ urltoid projectiri
-                 <*> do lang    <- o .:? "language" :: (Parser (Maybe Object))
-                        case lang of
-                             Nothing  -> return Nothing
-                             (Just x) -> do 
-                                foo <- x .: "value" :: (Parser (Maybe Text))
-                                return $ sequence $ foo : []
-    parseJSON _ = mzero
+
+
+
 
 instance FromJSON Collection where
   parseJSON (Object o) =
