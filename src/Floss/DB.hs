@@ -1,3 +1,4 @@
+
 {-# LANGUAGE EmptyDataDecls             #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GADTs                      #-}
@@ -36,7 +37,7 @@ Project
 --    img  URL
     deriving Show
 License
-    name Text
+    name Text Maybe
     deriving Show
 Coding
     name Text

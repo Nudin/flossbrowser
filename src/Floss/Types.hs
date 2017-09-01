@@ -10,6 +10,7 @@ import Data.Aeson.Types
 import Data.Text
 import GHC.Generics
 import Control.Monad
+import Control.Applicative
 import qualified Data.Generics as Gen
 
 -- Datatype for a Software item
@@ -20,6 +21,14 @@ data Software = Software {
   website :: Maybe Text,
   version :: Maybe Text
   } deriving (Show, Generic, Gen.Typeable, Gen.Data)
+
+data License' = License' {
+  lqid  :: !WikidataItemID,
+  lname :: Maybe Text
+} deriving (Show, Generic, Gen.Typeable, Gen.Data)
+
+data LicenseList = LicenseList [License'] deriving (Show, Generic) 
+
 
 {- Inspired by:
  - https://stackoverflow.com/questions/22807619/systematically-applying-a-function-to-all-fields-of-a-haskell-record
@@ -33,10 +42,8 @@ mergeText :: (Gen.Data a, Gen.Data b) => a -> b -> b
 mergeText = Gen.mkQ id (\a -> Gen.mkT (\b -> append <$> a <*> b :: Maybe Text))
 
 
-
 data Collection = Collection [Software] deriving (Show, Generic)
-data SPARQLResponse = SPARQLResponse Collection deriving (Show, Generic)
-
+data SPARQLResponse = SPARQLResponse Collection | SPARQLResponseLicenses LicenseList deriving (Show, Generic)
 
 
 {- Mixed applicative and monad version -}
@@ -61,14 +68,25 @@ instance FromJSON Software where
                              (Just x) -> x .: "value"
                  <*> do version    <- o .:? "version" :: (Parser (Maybe Object))
                         case version of
-
                              Nothing  -> return Nothing
                              (Just x) -> x .: "value"
     parseJSON _ = mzero
 
+instance FromJSON License' where
+    parseJSON (Object o) =
+        License' <$> do lid <- o .:  "license"
+                        lidiri <- lid      .:  "value"
+                        return $ urltoid lidiri
+                 <*> do name    <- o .:? "licenseLabel" :: (Parser (Maybe Object))
+                        case name of
+                             Nothing  -> return Nothing
+                             (Just x) -> x .: "value"
+    parseJSON _ = mzero
 
-
-
+instance FromJSON LicenseList where
+  parseJSON (Object o) =
+    LicenseList <$> o .: "bindings"
+  parseJSON _ = mzero
 
 instance FromJSON Collection where
   parseJSON (Object o) =
@@ -77,7 +95,7 @@ instance FromJSON Collection where
 
 instance FromJSON SPARQLResponse where
   parseJSON (Object o) =
-    SPARQLResponse <$> o .: "results"
+    (SPARQLResponse <$> o .: "results") <|> (SPARQLResponseLicenses <$> o .: "results")
   parseJSON _ = mzero
 
 -- TODO think about using Network.URL instead

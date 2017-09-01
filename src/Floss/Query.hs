@@ -4,6 +4,7 @@
 
 module Floss.Query(
     getCollection,
+    getLicenses,
 ) where
 
 import Str(str)
@@ -21,7 +22,8 @@ url :: String
 url = "https://query.wikidata.org/sparql?format=json&query="
 
 query :: String
-query = [str|SELECT DISTINCT ?floss ?name ?language ?version ?website ?licence ?os WHERE {
+query = [str|
+SELECT DISTINCT ?floss ?name ?language ?version ?website ?licence ?os WHERE {
   {
    ?floss p:P31/ps:P31/wdt:P279* wd:Q506883.
   } Union {
@@ -46,16 +48,33 @@ query = [str|SELECT DISTINCT ?floss ?name ?language ?version ?website ?licence ?
   OPTIONAL { ?floss rdfs:label ?name filter (lang(?name) = "en") .}
 } Limit 100 |]
 
-escapedQuery :: String
-escapedQuery = url ++ escapeURIString isAllowedInURI query
+query_license = [str|
+SELECT DISTINCT ?license ?licenseLabel WHERE {
+  ?free_software wdt:P275 ?license.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+} |]
+
+escapeQuery :: String -> String
+escapeQuery = (url ++) . escapeURIString isAllowedInURI
 
 getCollection :: IO Collection
 getCollection = do
     manager <- newManager tlsManagerSettings
-    req <- parseUrl escapedQuery
+    req <- parseUrl $ escapeQuery query
     res <- httpLbs req manager
     let body   = responseBody res
         mbList = decode body :: Maybe SPARQLResponse
     case mbList of
         (Just (SPARQLResponse c)) -> return c
         _                         -> return $ Collection []
+
+getLicenses :: IO LicenseList
+getLicenses = do
+    manager <- newManager tlsManagerSettings
+    req <- parseUrl $ escapeQuery query_license
+    res <- httpLbs req manager
+    let body   = responseBody res
+        mbList = decode body :: Maybe SPARQLResponse
+    case mbList of
+        (Just (SPARQLResponseLicenses c)) -> return c
+        _                         -> return $ LicenseList []
