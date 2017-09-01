@@ -1,6 +1,6 @@
 CC=ghc
 FLAGS=
-SRC=Main.hs
+SRC=Main.hs Floss/DB.hs Floss/FillDB.hs Floss/Query.hs Floss/Types.hs Str.hs URLtoID.hs
 
 all: Main Browser
 .PHONY: all
