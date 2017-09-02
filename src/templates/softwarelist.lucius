@@ -8,7 +8,7 @@ h3 {
     margin: 0px;
 }
 
-.notitle {
+.notitle a {
     color: gray;
 }
 .software {

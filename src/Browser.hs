@@ -35,7 +35,7 @@ mkYesod
   [parseRoutes|
     /                          HomeR        GET
     /software/#String          SoftwareR    GET
---    /softwarebyid/#ProjectId   SoftwareIdR  GET
+    /softwarebyid/#Int   SoftwareIdR  GET
     /bylicenseid/#Int          ByLicenseIdR  GET
     /bylicense/#String          ByLicenseR  GET
     /bycodingid/#Int          ByCodingIdR  GET
@@ -131,7 +131,22 @@ getHomeR = do
 getSoftwareR :: String -> Handler Html
 getSoftwareR software = do
     results <- runDB $ P.selectList [ ProjectName P.==. (Just $ pack software) ]  [P.LimitTo 1]
-    liftIO $ print $ results
+    defaultLayout $ do
+      setTitle $ toHtml $ "Flossbrowser: " ++ software
+      toWidget $(whamletFile "./templates/software.hamlet")
+      --toWidget $(luciusFile "./templates/software.lucius")
+
+
+-- Show Details to one specified Software
+getSoftwareIdR :: Int -> Handler Html
+getSoftwareIdR qid = do
+    results <- runDB
+           $ select $ distinct
+           $ from $ \p -> do
+                where_ ( p ^. ProjectId ==. val (qidtokey qid) )
+                limit 1
+                return p
+    let software = "Q" ++ (show qid)
     defaultLayout $ do
       setTitle $ toHtml $ "Flossbrowser: " ++ software
       toWidget $(whamletFile "./templates/software.hamlet")

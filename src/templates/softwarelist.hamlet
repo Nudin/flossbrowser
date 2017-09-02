@@ -12,7 +12,8 @@ $forall Entity projectid project <- results
                 <h3>
                     <a href=@{SoftwareR $ unpack name}>#{name}
             $nothing
-                <h3 class="notitle">Q#{wikidataid}
+                <h3 class="notitle">
+                    <a href=@{SoftwareIdR $ fromIntegral $ wikidataid}>Q#{wikidataid}
 
             <ul>
                 <li> Link: 
