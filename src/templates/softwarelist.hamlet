@@ -2,15 +2,7 @@
 
 <h1>Floss-Browser
 
-<form action="#">
-    <label>Gefundene Lizenzen
-        <select name="license" id="licensechooser" onclick="chooselicense()">
-            <option>-- all --
-            $forall Entity licenseid license <- ll
-                <option>
-                    $with wikidataid <- fromSqlKey licenseid
-                        $maybe name <- (licenseName license)
-                            #{name}
+^{chooser ll}
     
 <h2> Gefundene Projekte
 $forall Entity projectid project <- results
