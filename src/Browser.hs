@@ -37,8 +37,10 @@ mkYesod
     /                          HomeR        GET
     /software/#String          SoftwareR    GET
 --    /softwarebyid/#ProjectId   SoftwareIdR  GET
-    /bylicense/#Int          ByLicenseR  GET
-    /bycoding/#Int          ByCodingR  GET
+    /bylicenseid/#Int          ByLicenseIdR  GET
+    /bylicense/#String          ByLicenseR  GET
+    /bycodingid/#Int          ByCodingIdR  GET
+    /bycoding/#String          ByCodingR  GET
 |]
 
 instance YesodPersist Browser where
@@ -79,13 +81,43 @@ getByLicenseR license = do
        toWidget $(luciusFile "./templates/softwarelist.lucius")     -- TODO
        setTitle "Floss-Browser"
 
-getByCodingR :: Int -> Handler Html
-getByCodingR coding = do
+getByLicenseR :: String -> Handler Html
+getByLicenseR license = do
+    results <- runDB
+           $ E.select $ E.distinct
+           $ E.from $ \(p `E.InnerJoin` pl `E.InnerJoin` l) -> do
+                E.on $ p ^. ProjectId E.==. pl ^. ProjectLicenseFkProjectId
+                E.on $ l ^. LicenseId E.==. pl ^. ProjectLicenseFkLicenseId
+                E.where_ ( l ^. LicenseName E.==. E.val (Just (pack license)) )
+                E.limit 50
+                return p
+    defaultLayout $ do
+       toWidget $(hamletFile "./templates/softwarelist.hamlet")
+       toWidget $(luciusFile "./templates/softwarelist.lucius")     -- TODO
+       setTitle "Floss-Browser"
+
+getByCodingIdR :: Int -> Handler Html
+getByCodingIdR coding = do
     results <- runDB
            $ E.select $ E.distinct
            $ E.from $ \(p `E.InnerJoin` pc) -> do
                 E.on $ p ^. ProjectId E.==. pc ^. ProjectCodingFkProjectId
                 E.where_ ( pc ^. ProjectCodingFkCodingId E.==. E.val (qidtokey coding) )
+                E.limit 50
+                return p
+    defaultLayout $ do
+       toWidget $(hamletFile "./templates/softwarelist.hamlet")
+       toWidget $(luciusFile "./templates/softwarelist.lucius")     -- TODO
+       setTitle "Floss-Browser"
+
+getByCodingR :: String -> Handler Html
+getByCodingR coding = do
+    results <- runDB
+           $ E.select $ E.distinct
+           $ E.from $ \(p `E.InnerJoin` pc `E.InnerJoin` c) -> do
+                E.on $ p ^. ProjectId E.==. pc ^. ProjectCodingFkProjectId
+                E.on $ c ^. CodingId E.==. pc ^. ProjectCodingFkCodingId
+                E.where_ ( c ^. CodingName E.==. E.val (Just (pack coding)) )
                 E.limit 50
                 return p
     defaultLayout $ do
