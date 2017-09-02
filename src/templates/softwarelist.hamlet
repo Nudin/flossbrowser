@@ -1,7 +1,15 @@
+^{header}
+
 <h1>Floss-Browser
 
-<center> 
-    <a href=@{HomeR}>Home
+<form action="#">
+    <label>Gefundene Lizenzen
+        <select name="license">
+            $forall Entity licenseid license <- ll
+                <option>
+                    $with wikidataid <- fromSqlKey licenseid
+                        $maybe name <- (licenseName license)
+                            #{name}
     
 <h2> Gefundene Projekte
 $forall Entity projectid project <- results

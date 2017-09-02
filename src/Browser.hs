@@ -49,26 +49,52 @@ instance YesodPersist Browser where
         Browser pool <- getYesod
         runSqlPool action pool
 
+header :: Widget
+header = do
+      toWidget
+        [lucius|
+            .header {
+                text-align: center
+            }
+        |]
+      toWidget
+        [hamlet|
+          <div class="header">
+            <a href=@{HomeR}>Home
+        |]
+
+softwarelist results ll = do
+       toWidget $(whamletFile "./templates/softwarelist.hamlet")
+       toWidget $(luciusFile "./templates/softwarelist.lucius")
+
+licenselist = runDB 
+           $ E.select $ E.distinct
+           $ E.from $ \(pl `E.InnerJoin` l) -> do
+                E.on $ l ^. LicenseId E.==. pl ^. ProjectLicenseFkLicenseId
+                E.limit 50
+                E.orderBy [ E.asc (l ^. LicenseName) ]
+                return l
+
 getHomeR :: Handler Html
 getHomeR = do
     results <- runDB $ selectList []  [LimitTo 50]
+    ll <- licenselist
     defaultLayout $ do
        setTitle "Floss-Browser"
-       toWidget $(hamletFile "./templates/softwarelist.hamlet")
-       toWidget $(luciusFile "./templates/softwarelist.lucius")     -- TODO
+       softwarelist results ll
 
 getSoftwareR :: String -> Handler Html
 getSoftwareR software = do
     results <- runDB $ selectList [ ProjectName ==. (Just $ pack software) ]  [LimitTo 1]
     liftIO $ print $ results
     defaultLayout $ do
-      setTitle $ toHtml $ software ++ " "         -- TODO
-      --toWidget $(luciusFile "./foo.lucius")     -- TODO
-      toWidget $(hamletFile "./templates/software.hamlet")
-      toWidget $(luciusFile "./templates/softwarelist.lucius")     -- TODO
+      setTitle $ toHtml $ "Flossbrowser: " ++ software
+      toWidget $(whamletFile "./templates/software.hamlet")
+      --toWidget $(luciusFile "./templates/software.lucius")
 
-getByLicenseR :: Int -> Handler Html
-getByLicenseR license = do
+getByLicenseIdR :: Int -> Handler Html
+getByLicenseIdR license = do
+    ll <- licenselist
     results <- runDB
            $ E.select $ E.distinct
            $ E.from $ \(p `E.InnerJoin` pl) -> do
@@ -77,12 +103,12 @@ getByLicenseR license = do
                 E.limit 50
                 return p
     defaultLayout $ do
-       toWidget $(hamletFile "./templates/softwarelist.hamlet")
-       toWidget $(luciusFile "./templates/softwarelist.lucius")     -- TODO
        setTitle "Floss-Browser"
+       softwarelist results ll
 
 getByLicenseR :: String -> Handler Html
 getByLicenseR license = do
+    ll <- licenselist
     results <- runDB
            $ E.select $ E.distinct
            $ E.from $ \(p `E.InnerJoin` pl `E.InnerJoin` l) -> do
@@ -92,12 +118,12 @@ getByLicenseR license = do
                 E.limit 50
                 return p
     defaultLayout $ do
-       toWidget $(hamletFile "./templates/softwarelist.hamlet")
-       toWidget $(luciusFile "./templates/softwarelist.lucius")     -- TODO
        setTitle "Floss-Browser"
+       softwarelist results ll
 
 getByCodingIdR :: Int -> Handler Html
 getByCodingIdR coding = do
+    ll <- licenselist
     results <- runDB
            $ E.select $ E.distinct
            $ E.from $ \(p `E.InnerJoin` pc) -> do
@@ -106,12 +132,12 @@ getByCodingIdR coding = do
                 E.limit 50
                 return p
     defaultLayout $ do
-       toWidget $(hamletFile "./templates/softwarelist.hamlet")
-       toWidget $(luciusFile "./templates/softwarelist.lucius")     -- TODO
        setTitle "Floss-Browser"
+       softwarelist results ll
 
 getByCodingR :: String -> Handler Html
 getByCodingR coding = do
+    ll <- licenselist
     results <- runDB
            $ E.select $ E.distinct
            $ E.from $ \(p `E.InnerJoin` pc `E.InnerJoin` c) -> do
@@ -121,9 +147,8 @@ getByCodingR coding = do
                 E.limit 50
                 return p
     defaultLayout $ do
-       toWidget $(hamletFile "./templates/softwarelist.hamlet")
-       toWidget $(luciusFile "./templates/softwarelist.lucius")     -- TODO
        setTitle "Floss-Browser"
+       softwarelist results ll
 
 
 main :: IO ()

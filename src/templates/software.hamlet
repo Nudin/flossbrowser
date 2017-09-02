@@ -1,7 +1,6 @@
-<h1>#{software}
+^{header}
 
-<center> 
-    <a href=@{HomeR}>Home
+<h1>#{software}
     
 <h2> Gefundene Information
 <ul>
