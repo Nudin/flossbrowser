@@ -14,14 +14,13 @@ import Floss.DB
 
 import Text.Hamlet
 import Text.Lucius
-import Yesod
+import Yesod hiding ((==.))
 
 import Data.Text
-import Database.Persist
-import Database.Persist.Sqlite
+import qualified Database.Persist as P
+import qualified Database.Persist.Sqlite as P
 import Database.Persist.TH
-import qualified Database.Esqueleto      as E
-import           Database.Esqueleto      ((^.))
+import Database.Esqueleto
 
 
 import Control.Monad.Trans.Resource (runResourceT)
@@ -80,16 +79,16 @@ softwarelist results ll = do
         |]
 
 licenselist = runDB 
-           $ E.select $ E.distinct
-           $ E.from $ \(pl `E.InnerJoin` l) -> do
-                E.on $ l ^. LicenseId E.==. pl ^. ProjectLicenseFkLicenseId
-                E.limit 50
-                E.orderBy [ E.asc (l ^. LicenseName) ]
+           $ select $ distinct
+           $ from $ \(pl `InnerJoin` l) -> do
+                on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
+                limit 50
+                orderBy [ asc (l ^. LicenseName) ]
                 return l
 
 getHomeR :: Handler Html
 getHomeR = do
-    results <- runDB $ selectList []  [LimitTo 50]
+    results <- runDB $ P.selectList []  [P.LimitTo 50]
     ll <- licenselist
     defaultLayout $ do
        setTitle "Floss-Browser"
@@ -97,7 +96,7 @@ getHomeR = do
 
 getSoftwareR :: String -> Handler Html
 getSoftwareR software = do
-    results <- runDB $ selectList [ ProjectName ==. (Just $ pack software) ]  [LimitTo 1]
+    results <- runDB $ P.selectList [ ProjectName P.==. (Just $ pack software) ]  [P.LimitTo 1]
     liftIO $ print $ results
     defaultLayout $ do
       setTitle $ toHtml $ "Flossbrowser: " ++ software
@@ -108,11 +107,11 @@ getByLicenseIdR :: Int -> Handler Html
 getByLicenseIdR license = do
     ll <- licenselist
     results <- runDB
-           $ E.select $ E.distinct
-           $ E.from $ \(p `E.InnerJoin` pl) -> do
-                E.on $ p ^. ProjectId E.==. pl ^. ProjectLicenseFkProjectId
-                E.where_ ( pl ^. ProjectLicenseFkLicenseId E.==. E.val (qidtokey license) )
-                E.limit 50
+           $ select $ distinct
+           $ from $ \(p `InnerJoin` pl) -> do
+                on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
+                where_ ( pl ^. ProjectLicenseFkLicenseId ==. val (qidtokey license) )
+                limit 50
                 return p
     defaultLayout $ do
       setTitle $ toHtml $ "Floss-Browser: Software licensed with license Q" ++ (show license)
@@ -122,12 +121,12 @@ getByLicenseR :: String -> Handler Html
 getByLicenseR license = do
     ll <- licenselist
     results <- runDB
-           $ E.select $ E.distinct
-           $ E.from $ \(p `E.InnerJoin` pl `E.InnerJoin` l) -> do
-                E.on $ p ^. ProjectId E.==. pl ^. ProjectLicenseFkProjectId
-                E.on $ l ^. LicenseId E.==. pl ^. ProjectLicenseFkLicenseId
-                E.where_ ( l ^. LicenseName E.==. E.val (Just (pack license)) )
-                E.limit 50
+           $ select $ distinct
+           $ from $ \(p `InnerJoin` pl `InnerJoin` l) -> do
+                on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
+                on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
+                where_ ( l ^. LicenseName ==. val (Just (pack license)) )
+                limit 50
                 return p
     defaultLayout $ do
       setTitle $ toHtml $ "Floss-Browser: Software licensed with license " ++ license
@@ -137,11 +136,11 @@ getByCodingIdR :: Int -> Handler Html
 getByCodingIdR coding = do
     ll <- licenselist
     results <- runDB
-           $ E.select $ E.distinct
-           $ E.from $ \(p `E.InnerJoin` pc) -> do
-                E.on $ p ^. ProjectId E.==. pc ^. ProjectCodingFkProjectId
-                E.where_ ( pc ^. ProjectCodingFkCodingId E.==. E.val (qidtokey coding) )
-                E.limit 50
+           $ select $ distinct
+           $ from $ \(p `InnerJoin` pc) -> do
+                on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
+                where_ ( pc ^. ProjectCodingFkCodingId ==. val (qidtokey coding) )
+                limit 50
                 return p
     defaultLayout $ do
       setTitle $ toHtml $ "Floss-Browser: Software written in Q" ++ (show coding)
@@ -151,12 +150,12 @@ getByCodingR :: String -> Handler Html
 getByCodingR coding = do
     ll <- licenselist
     results <- runDB
-           $ E.select $ E.distinct
-           $ E.from $ \(p `E.InnerJoin` pc `E.InnerJoin` c) -> do
-                E.on $ p ^. ProjectId E.==. pc ^. ProjectCodingFkProjectId
-                E.on $ c ^. CodingId E.==. pc ^. ProjectCodingFkCodingId
-                E.where_ ( c ^. CodingName E.==. E.val (Just (pack coding)) )
-                E.limit 50
+           $ select $ distinct
+           $ from $ \(p `InnerJoin` pc `InnerJoin` c) -> do
+                on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
+                on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
+                where_ ( c ^. CodingName ==. val (Just (pack coding)) )
+                limit 50
                 return p
     defaultLayout $ do
       setTitle $ toHtml $ "Floss-Browser: Software written in " ++ coding
@@ -164,5 +163,5 @@ getByCodingR coding = do
 
 
 main :: IO ()
-main = runStderrLoggingT $ withSqlitePool sqliteDB 10 $ \pool -> liftIO $ do
+main = runStderrLoggingT $ P.withSqlitePool sqliteDB 10 $ \pool -> liftIO $ do
   warp 3000 $ Browser pool
