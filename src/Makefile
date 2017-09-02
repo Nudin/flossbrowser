@@ -8,7 +8,7 @@ all: tmpdir Main Browser
 .PHONY: all
 
 Browser: Browser.hs
-	$(CC) Browser.hs
+	$(CC) $(FLAGS) Browser.hs
 
 Main: $(SRC)
 	$(CC) $(FLAGS) $(SRC)
