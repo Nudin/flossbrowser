@@ -66,6 +66,18 @@ header = do
 softwarelist results ll = do
        toWidget $(whamletFile "./templates/softwarelist.hamlet")
        toWidget $(luciusFile "./templates/softwarelist.lucius")
+       toWidget 
+        [julius|
+          function chooselicense() { 
+            value = document.getElementById("licensechooser").value;
+            if(value === "-- all --") {
+                  window.location.href = "/";
+               }
+            else {
+                  window.location.href = "/bylicense/" + value;
+                 }
+          }
+        |]
 
 licenselist = runDB 
            $ E.select $ E.distinct
@@ -103,8 +115,8 @@ getByLicenseIdR license = do
                 E.limit 50
                 return p
     defaultLayout $ do
-       setTitle "Floss-Browser"
-       softwarelist results ll
+      setTitle $ toHtml $ "Floss-Browser: Software licensed with license Q" ++ (show license)
+      softwarelist results ll
 
 getByLicenseR :: String -> Handler Html
 getByLicenseR license = do
@@ -118,8 +130,8 @@ getByLicenseR license = do
                 E.limit 50
                 return p
     defaultLayout $ do
-       setTitle "Floss-Browser"
-       softwarelist results ll
+      setTitle $ toHtml $ "Floss-Browser: Software licensed with license " ++ license
+      softwarelist results ll
 
 getByCodingIdR :: Int -> Handler Html
 getByCodingIdR coding = do
@@ -132,8 +144,8 @@ getByCodingIdR coding = do
                 E.limit 50
                 return p
     defaultLayout $ do
-       setTitle "Floss-Browser"
-       softwarelist results ll
+      setTitle $ toHtml $ "Floss-Browser: Software written in Q" ++ (show coding)
+      softwarelist results ll
 
 getByCodingR :: String -> Handler Html
 getByCodingR coding = do
@@ -147,8 +159,8 @@ getByCodingR coding = do
                 E.limit 50
                 return p
     defaultLayout $ do
-       setTitle "Floss-Browser"
-       softwarelist results ll
+      setTitle $ toHtml $ "Floss-Browser: Software written in " ++ coding
+      softwarelist results ll
 
 
 main :: IO ()
