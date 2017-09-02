@@ -2,7 +2,7 @@
 
 <h1>Floss-Browser
 
-^{chooser ll}
+^{chooser ll cl}
     
 <h2> Gefundene Projekte
 $forall Entity projectid project <- results
