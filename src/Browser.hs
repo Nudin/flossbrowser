@@ -22,9 +22,10 @@ import qualified Database.Persist.Sqlite as P
 import Database.Persist.TH
 import Database.Esqueleto
 
-
+import System.Environment
 import Control.Monad.Trans.Resource (runResourceT)
 import Control.Monad.Logger (runStderrLoggingT)
+import Data.Maybe
 
 data Browser = Browser ConnectionPool
 
@@ -216,5 +217,10 @@ getByCodingR coding = do
 
 
 main :: IO ()
-main = runStderrLoggingT $ P.withSqlitePool sqliteDB 10 $ \pool -> liftIO $ do
-  warp 3000 $ Browser pool
+main = do
+  t <- lookupEnv "PORT"
+  let port = fromMaybe 3000 $ toint <$> t
+  runStderrLoggingT $ P.withSqlitePool sqliteDB 10 $ \pool -> liftIO $ do
+  warp port $ Browser pool
+    where
+      toint s = read s :: Int
