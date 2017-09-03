@@ -144,6 +144,51 @@ softwarelist results = do
        toWidget $(whamletFile "./templates/softwarelist.hamlet")
        toWidget $(luciusFile "./templates/softwarelist.lucius")
 
+-- TODO: remove duplicate code of runquery' or runquery
+--          - Ether get rid of runquery' entirely or
+--          - base runquery on runquery' or
+--          - ...
+runquery
+  :: (BaseBackend (YesodPersistBackend site) ~ SqlBackend,
+      YesodPersist site, IsPersistBackend (YesodPersistBackend site),
+      PersistQueryRead (YesodPersistBackend site),
+      PersistUniqueRead (YesodPersistBackend site)) =>
+     Maybe String -> Maybe String -> HandlerT site IO [Entity Project]
+runquery license coding = runDB
+           $ select $ distinct
+           $ from $ \(p `InnerJoin` pl `InnerJoin` l `InnerJoin` pc `InnerJoin` c) -> do
+                on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
+                on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
+                on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
+                on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
+                case license of
+                  Just license' -> where_ ( l ^. LicenseName ==. val (Just (pack license')))
+                  Nothing -> return ()
+                case coding of
+                  Just coding' -> where_ ( c ^. CodingName ==. val (Just (pack coding')))
+                  Nothing -> return ()
+                limit 50
+                return p
+
+runquery'
+  :: (BaseBackend (YesodPersistBackend site) ~ SqlBackend,
+      YesodPersist site, IsPersistBackend (YesodPersistBackend site),
+      PersistQueryRead (YesodPersistBackend site),
+      PersistUniqueRead (YesodPersistBackend site)) =>
+     Maybe Int -> Maybe Int -> HandlerT site IO [Entity Project]
+runquery' license coding = runDB
+           $ select $ distinct
+           $ from $ \(p `InnerJoin` pl `InnerJoin` pc) -> do
+                on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
+                on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
+                case license of
+                  Just license' -> where_ ( pl ^. ProjectLicenseFkLicenseId ==. val (qidtokey license') )
+                  Nothing -> return ()
+                case coding of
+                  Just coding' -> where_ ( pc ^. ProjectCodingFkCodingId ==. val (qidtokey coding') )
+                  Nothing -> return ()
+                limit 50
+                return p
 
 ---- Recourse handlers – mostly doing the same things -----
 ---- TODO: remove duplicate code                      -----
@@ -184,13 +229,7 @@ getSoftwareIdR qid = do
 -- Get Software my Licence-ID
 getByLicenseIdR :: Int -> Handler Html
 getByLicenseIdR license = do
-    results <- runDB
-           $ select $ distinct
-           $ from $ \(p `InnerJoin` pl) -> do
-                on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
-                where_ ( pl ^. ProjectLicenseFkLicenseId ==. val (qidtokey license) )
-                limit 50
-                return p
+    results <- runquery' (Just license) Nothing
     defaultLayout $ do
       setTitle $ toHtml $ "Floss-Browser: Software licensed with license Q" ++ (show license)
       softwarelist results
@@ -198,14 +237,7 @@ getByLicenseIdR license = do
 -- Get Software by License-Name
 getByLicenseR :: String -> Handler Html
 getByLicenseR license = do
-    results <- runDB
-           $ select $ distinct
-           $ from $ \(p `InnerJoin` pl `InnerJoin` l) -> do
-                on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
-                on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
-                where_ ( l ^. LicenseName ==. val (Just (pack license)) )
-                limit 50
-                return p
+    results <- runquery (Just license) Nothing
     defaultLayout $ do
       setTitle $ toHtml $ "Floss-Browser: Software licensed with license " ++ license
       softwarelist results
@@ -213,13 +245,7 @@ getByLicenseR license = do
 -- Get Software my Coding-ID
 getByCodingIdR :: Int -> Handler Html
 getByCodingIdR coding = do
-    results <- runDB
-           $ select $ distinct
-           $ from $ \(p `InnerJoin` pc) -> do
-                on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
-                where_ ( pc ^. ProjectCodingFkCodingId ==. val (qidtokey coding) )
-                limit 50
-                return p
+    results <- runquery' Nothing (Just coding)
     defaultLayout $ do
       setTitle $ toHtml $ "Floss-Browser: Software written in Q" ++ (show coding)
       softwarelist results
@@ -227,14 +253,7 @@ getByCodingIdR coding = do
 -- Get Software my Coding-Name
 getByCodingR :: String -> Handler Html
 getByCodingR coding = do
-    results <- runDB
-           $ select $ distinct
-           $ from $ \(p `InnerJoin` pc `InnerJoin` c) -> do
-                on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
-                on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
-                where_ ( c ^. CodingName ==. val (Just (pack coding)) )
-                limit 50
-                return p
+    results <- runquery Nothing (Just coding)
     defaultLayout $ do
       setTitle $ toHtml $ "Floss-Browser: Software written in " ++ coding
       softwarelist results
