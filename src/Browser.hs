@@ -1,32 +1,33 @@
-{-# LANGUAGE EmptyDataDecls #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE EmptyDataDecls             #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE QuasiQuotes                #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE ViewPatterns               #-}
 
 
-import Floss.DB
+import           Floss.DB
 
-import Text.Hamlet
-import Text.Lucius
-import Yesod hiding ((==.))
+import           Text.Hamlet
+import           Text.Julius
+import           Text.Lucius
+import           Yesod                        hiding ((==.))
 
-import Data.Text
-import qualified Database.Persist as P
-import qualified Database.Persist.Sqlite as P
-import Database.Persist.TH
-import Database.Esqueleto
+import           Data.Text
+import           Database.Esqueleto
+import qualified Database.Persist             as P
+import qualified Database.Persist.Sqlite      as P
+import           Database.Persist.TH
 
 
-import System.Environment
-import Control.Monad.Trans.Resource (runResourceT)
-import Control.Monad.Logger (runStderrLoggingT)
-import Data.Maybe
+import           Control.Monad.Logger         (runStderrLoggingT)
+import           Control.Monad.Trans.Resource (runResourceT)
+import           Data.Maybe
+import           System.Environment
 
 data Browser = Browser ConnectionPool
 
@@ -71,7 +72,7 @@ header = do
 -- Query to get the list of all licenses
 -- TODO: Cache results?
 licenselist :: HandlerT Browser IO [Entity License]
-licenselist = runDB 
+licenselist = runDB
            $ select $ distinct
            $ from $ \(pl `InnerJoin` l) -> do
                 on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
@@ -83,7 +84,7 @@ inlineif t a b = if t then a else b
 
 ---- TODO: Cache results?
 codinglist :: HandlerT Browser IO [Entity Coding]
-codinglist = runDB 
+codinglist = runDB
            $ select $ distinct
            $ from $ \(pc `InnerJoin` c) -> do
                 on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
@@ -99,48 +100,8 @@ chooser :: String -> String -> Widget
 chooser license coding = do
     ll <- handlerToWidget $ licenselist
     cl <- handlerToWidget $ codinglist
-    toWidget
-      [hamlet|
-       <form action="#">
-           <label> Lizenzen&#32
-               <select name="license" id="licensechooser" onclick="filter()">
-                   <option>-- all --
-                   $forall Entity licenseid license' <- ll
-                     $with wikidataid <- fromSqlKey licenseid
-                       $maybe name <- (licenseName license')
-                           <option :(license == (unpack name)):selected>
-                                 #{name}
-           <label> Programiersprachen&#32
-               <select name="coding" id="codingchooser" onclick="filter()">
-                   <option>-- all --
-                   $forall Entity codingid coding' <- cl
-                       $with wikidataid <- fromSqlKey codingid
-                           $maybe name <- (codingName coding')
-                             <option :(coding == (unpack name)):selected>
-                                 #{name}
-      |]
-    toWidget 
-        [julius|
-          function filter() { 
-            license = document.getElementById("licensechooser").value;
-            coding = document.getElementById("codingchooser").value;
-            newurl="/*/"
-            if(license === "-- all --") {
-               newurl += "*/"
-            }
-            else {
-                  newurl += license + "/"
-            }
-            if(coding === "-- all --") {
-               newurl += "*/"
-            }
-            else {
-                  newurl += coding + "/"
-            }
-            console.log(newurl);
-            window.location.href = newurl;
-            }
-        |]
+    toWidget $(hamletFile "./templates/chooser.hamlet")
+    toWidget $(juliusFile "./templates/chooser.julius")
 
 runquery
   :: (BaseBackend (YesodPersistBackend site) ~ SqlBackend,
@@ -239,7 +200,7 @@ main :: IO ()
 main = do
   t <- lookupEnv "PORT"
   let port = fromMaybe 3000 $ toint <$> t
-  runStderrLoggingT $ P.withSqlitePool sqliteDB 10 $ \pool -> liftIO $ do
-  warp port $ Browser pool
+  runStderrLoggingT $ P.withSqlitePool sqliteDB 10 $
+       \pool -> liftIO $ warp port $ Browser pool
     where
       toint s = read s :: Int
