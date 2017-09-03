@@ -34,13 +34,13 @@ instance Yesod Browser
 mkYesod
   "Browser"
   [parseRoutes|
-    /                          HomeR        GET
-    /software/#String          SoftwareR    GET
-    /softwarebyid/#Int   SoftwareIdR  GET
-    /bylicenseid/#Int          ByLicenseIdR  GET
-    /bylicense/#String          ByLicenseR  GET
-    /bycodingid/#Int          ByCodingIdR  GET
-    /bycoding/#String          ByCodingR  GET
+    flossbrowser/                          HomeR        GET
+    flossbrowser/software/#String          SoftwareR    GET
+    flossbrowser/softwarebyid/#Int   SoftwareIdR  GET
+    flossbrowser/bylicenseid/#Int          ByLicenseIdR  GET
+    flossbrowser/bylicense/#String          ByLicenseR  GET
+    flossbrowser/bycodingid/#Int          ByCodingIdR  GET
+    flossbrowser/bycoding/#String          ByCodingR  GET
 |]
 
 instance YesodPersist Browser where
@@ -103,7 +103,7 @@ chooser ll = do
                   window.location.href = "/";
                }
             else {
-                  window.location.href = "/bylicense/" + value;
+                  window.location.href = "flossbrowser/bylicense/" + value;
                  }
           }
         |]
