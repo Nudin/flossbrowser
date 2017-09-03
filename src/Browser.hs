@@ -37,11 +37,14 @@ mkYesod
   [parseRoutes|
     /                          HomeR        GET
     /software/#String          SoftwareR    GET
-    /softwarebyid/#Int   SoftwareIdR  GET
-    /bylicenseid/#Int          ByLicenseIdR  GET
-    /bylicense/#String          ByLicenseR  GET
-    /bycodingid/#Int          ByCodingIdR  GET
-    /bycoding/#String          ByCodingR  GET
+    /softwarebyid/#Int         SoftwareIdR   GET
+
+    /bylicense/#String         ByLicenseR    GET
+    /bycoding/#String          ByCodingR     GET
+
+    !/#String                   Filter1R     GET
+    !/#String/#String           Filter2R     GET
+    !/#String/#String/#String   Filter3R     GET
 |]
 
 instance YesodPersist Browser where
@@ -76,6 +79,8 @@ licenselist = runDB
                 orderBy [ asc (l ^. LicenseName) ]
                 return l
 
+inlineif t a b = if t then a else b
+
 ---- TODO: Cache results?
 codinglist :: HandlerT Browser IO [Entity Coding]
 codinglist = runDB 
@@ -90,64 +95,53 @@ codinglist = runDB
 -- The list of what options are available is currently given as an argument
 -- TODO: Move to separate files
 -- TODO: Add other filters
--- TODO: Preselect current value
-chooser :: Widget
-chooser = do
+chooser :: String -> String -> Widget
+chooser license coding = do
     ll <- handlerToWidget $ licenselist
     cl <- handlerToWidget $ codinglist
     toWidget
       [hamlet|
        <form action="#">
-           <label> Lizenzen 
-               <select name="license" id="licensechooser" onclick="chooselicense()">
+           <label> Lizenzen&#32
+               <select name="license" id="licensechooser" onclick="filter()">
                    <option>-- all --
-                   $forall Entity licenseid license <- ll
-                       <option>
-                           $with wikidataid <- fromSqlKey licenseid
-                               $maybe name <- (licenseName license)
-                                   #{name}
-           <label> Programiersprachen 
-               <select name="coding" id="codingchooser" onclick="choosecoding()">
+                   $forall Entity licenseid license' <- ll
+                     $with wikidataid <- fromSqlKey licenseid
+                       $maybe name <- (licenseName license')
+                           <option :(license == (unpack name)):selected>
+                                 #{name}
+           <label> Programiersprachen&#32
+               <select name="coding" id="codingchooser" onclick="filter()">
                    <option>-- all --
-                   $forall Entity codingid coding <- cl
-                       <option>
-                           $with wikidataid <- fromSqlKey codingid
-                               $maybe name <- (codingName coding)
-                                   #{name}
+                   $forall Entity codingid coding' <- cl
+                       $with wikidataid <- fromSqlKey codingid
+                           $maybe name <- (codingName coding')
+                             <option :(coding == (unpack name)):selected>
+                                 #{name}
       |]
     toWidget 
         [julius|
-          function chooselicense() { 
-            value = document.getElementById("licensechooser").value;
-            if(value === "-- all --") {
-                  window.location.href = "/";
-               }
+          function filter() { 
+            license = document.getElementById("licensechooser").value;
+            coding = document.getElementById("codingchooser").value;
+            newurl="/*/"
+            if(license === "-- all --") {
+               newurl += "*/"
+            }
             else {
-                  window.location.href = "/bylicense/" + value;
-                 }
-          }
-          function choosecoding() { 
-            value = document.getElementById("codingchooser").value;
-            if(value === "-- all --") {
-                  window.location.href = "/";
-               }
+                  newurl += license + "/"
+            }
+            if(coding === "-- all --") {
+               newurl += "*/"
+            }
             else {
-                  window.location.href = "/bycoding/" + value;
-                 }
-          }
+                  newurl += coding + "/"
+            }
+            console.log(newurl);
+            window.location.href = newurl;
+            }
         |]
 
--- Compose Hamlet- and Lucius-Template of the software list
-softwarelist :: (HandlerSite m ~ Browser, MonadWidget m) =>
-     [Entity Project] -> m ()
-softwarelist results = do
-       toWidget $(whamletFile "./templates/softwarelist.hamlet")
-       toWidget $(luciusFile "./templates/softwarelist.lucius")
-
--- TODO: remove duplicate code of runquery' or runquery
---          - Ether get rid of runquery' entirely or
---          - base runquery on runquery' or
---          - ...
 runquery
   :: (BaseBackend (YesodPersistBackend site) ~ SqlBackend,
       YesodPersist site, IsPersistBackend (YesodPersistBackend site),
@@ -170,36 +164,20 @@ runquery license coding = runDB
                 limit 50
                 return p
 
-runquery'
-  :: (BaseBackend (YesodPersistBackend site) ~ SqlBackend,
-      YesodPersist site, IsPersistBackend (YesodPersistBackend site),
-      PersistQueryRead (YesodPersistBackend site),
-      PersistUniqueRead (YesodPersistBackend site)) =>
-     Maybe Int -> Maybe Int -> HandlerT site IO [Entity Project]
-runquery' license coding = runDB
-           $ select $ distinct
-           $ from $ \(p `InnerJoin` pl `InnerJoin` pc) -> do
-                on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
-                on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
-                case license of
-                  Just license' -> where_ ( pl ^. ProjectLicenseFkLicenseId ==. val (qidtokey license') )
-                  Nothing -> return ()
-                case coding of
-                  Just coding' -> where_ ( pc ^. ProjectCodingFkCodingId ==. val (qidtokey coding') )
-                  Nothing -> return ()
-                limit 50
-                return p
-
 ---- Recourse handlers – mostly doing the same things -----
 ---- TODO: remove duplicate code                      -----
 
 -- List all Software
 getHomeR :: Handler Html
+--getHomeR = getFilterN "*" "*" "*" -- elegant but slow version
 getHomeR = do
     results <- runDB $ P.selectList []  [P.LimitTo 50]
     defaultLayout $ do
        setTitle "Floss-Browser"
-       softwarelist results
+       let coding = "*"
+       let license = "*"
+       toWidget $(whamletFile "./templates/softwarelist.hamlet")
+       toWidget $(luciusFile "./templates/softwarelist.lucius")
 
 -- Show Details to one specified Software
 getSoftwareR :: String -> Handler Html
@@ -226,38 +204,36 @@ getSoftwareIdR qid = do
       toWidget $(whamletFile "./templates/software.hamlet")
       --toWidget $(luciusFile "./templates/software.lucius")
 
--- Get Software my Licence-ID
-getByLicenseIdR :: Int -> Handler Html
-getByLicenseIdR license = do
-    results <- runquery' (Just license) Nothing
+getFilterN :: String -> String -> String -> Handler Html
+getFilterN os license coding = do
+    results <- runquery (check license) (check coding)
     defaultLayout $ do
-      setTitle $ toHtml $ "Floss-Browser: Software licensed with license Q" ++ (show license)
-      softwarelist results
+      setTitle $ toHtml $ "Floss-Browser: Software licensed with license " ++ license
+      toWidget $(whamletFile "./templates/softwarelist.hamlet")
+      toWidget $(luciusFile "./templates/softwarelist.lucius")
+    where
+      check "*" = Nothing
+      check s   = Just s
+
+-- Get Software by OS
+getFilter1R :: String -> Handler Html
+getFilter1R os = getFilterN os "*" "*"
+
+-- Get Software by OS & License
+getFilter2R :: String -> String -> Handler Html
+getFilter2R os license = getFilterN os license "*"
+
+-- Get Software by OS, License & Coding
+getFilter3R :: String -> String -> String -> Handler Html
+getFilter3R = getFilterN
 
 -- Get Software by License-Name
 getByLicenseR :: String -> Handler Html
-getByLicenseR license = do
-    results <- runquery (Just license) Nothing
-    defaultLayout $ do
-      setTitle $ toHtml $ "Floss-Browser: Software licensed with license " ++ license
-      softwarelist results
-
--- Get Software my Coding-ID
-getByCodingIdR :: Int -> Handler Html
-getByCodingIdR coding = do
-    results <- runquery' Nothing (Just coding)
-    defaultLayout $ do
-      setTitle $ toHtml $ "Floss-Browser: Software written in Q" ++ (show coding)
-      softwarelist results
+getByLicenseR license = getFilterN "*" license "*"
 
 -- Get Software my Coding-Name
 getByCodingR :: String -> Handler Html
-getByCodingR coding = do
-    results <- runquery Nothing (Just coding)
-    defaultLayout $ do
-      setTitle $ toHtml $ "Floss-Browser: Software written in " ++ coding
-      softwarelist results
-
+getByCodingR coding = getFilterN "*" "*" coding
 
 main :: IO ()
 main = do
