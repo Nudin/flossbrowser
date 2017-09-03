@@ -9,13 +9,12 @@ module Floss.Query(
 ) where
 
 import Str(str)
-import Control.Monad
 
 import Data.Aeson
 
 import Network.URI(escapeURIString,isAllowedInURI)
 import Network.HTTP.Client
-import Network.HTTP.Client.TLS
+import Network.HTTP.Client.TLS()
 
 import Floss.Types
 
@@ -49,13 +48,15 @@ SELECT DISTINCT ?floss ?name ?language ?version ?website ?license ?os WHERE {
   OPTIONAL { ?floss rdfs:label ?name filter (lang(?name) = "en") .}
 } Limit 100 |]
 
-query_license = [str|
+queryLicense :: String
+queryLicense = [str|
 SELECT DISTINCT ?license ?licenseLabel WHERE {
   ?free_software wdt:P275 ?license.
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 } |]
 
-query_codings = [str|
+queryCodings :: String
+queryCodings = [str|
 SELECT DISTINCT ?language ?languageLabel WHERE {
   ?free_software wdt:P277 ?language.
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
@@ -64,35 +65,32 @@ SELECT DISTINCT ?language ?languageLabel WHERE {
 escapeQuery :: String -> String
 escapeQuery = (url ++) . escapeURIString isAllowedInURI
 
-getCollection :: IO Collection
-getCollection = do
-    manager <- newManager tlsManagerSettings
+getCollection :: Manager -> IO Collection
+getCollection man = do
     req <- parseUrl $ escapeQuery query
-    res <- httpLbs req manager
+    res <- httpLbs req man
     let body   = responseBody res
         mbList = decode body :: Maybe SPARQLResponse
     case mbList of
         (Just (SPARQLResponse c)) -> return c
         _                         -> return $ Collection []
 
-getLicenses :: IO LicenseList
-getLicenses = do
-    manager <- newManager tlsManagerSettings
-    req <- parseUrl $ escapeQuery query_license
-    res <- httpLbs req manager
+getLicenses :: Manager -> IO LicenseList
+getLicenses man = do
+    req <- parseUrl $ escapeQuery queryLicense
+    res <- httpLbs req man
     let body   = responseBody res
         mbList = decode body :: Maybe SPARQLResponse
     case mbList of
         (Just (SPARQLResponseLicenses c)) -> return c
-        _                         -> return $ LicenseList []
+        _                                 -> return $ LicenseList []
 
-getCodings :: IO CodingList
-getCodings = do
-    manager <- newManager tlsManagerSettings
-    req <- parseUrl $ escapeQuery query_codings
-    res <- httpLbs req manager
+getCodings :: Manager -> IO CodingList
+getCodings man = do
+    req <- parseUrl $ escapeQuery queryCodings
+    res <- httpLbs req man
     let body   = responseBody res
         mbList = decode body :: Maybe SPARQLResponse
     case mbList of
         (Just (SPARQLResponseCodings c)) -> return c
-        _                         -> return $ CodingList []
+        _                                -> return $ CodingList []
