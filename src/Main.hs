@@ -1,5 +1,12 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 import Floss.FillDB
-import Floss.Query
+import Control.Exception
+
+import Network.HTTP.Client
 
 main :: IO ()
-main = initDB
+main = initDB `catch` (\(e :: HttpException) -> handleHTTPEx e)
+
+handleHTTPEx :: HttpException -> IO ()
+handleHTTPEx _ = print "A network error occurred"
