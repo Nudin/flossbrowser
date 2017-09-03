@@ -22,6 +22,7 @@ import qualified Database.Persist.Sqlite as P
 import Database.Persist.TH
 import Database.Esqueleto
 
+
 import System.Environment
 import Control.Monad.Trans.Resource (runResourceT)
 import Control.Monad.Logger (runStderrLoggingT)
@@ -66,6 +67,7 @@ header = do
 
 -- Query to get the list of all licenses
 -- TODO: Cache results?
+licenselist :: HandlerT Browser IO [Entity License]
 licenselist = runDB 
            $ select $ distinct
            $ from $ \(pl `InnerJoin` l) -> do
@@ -74,25 +76,43 @@ licenselist = runDB
                 orderBy [ asc (l ^. LicenseName) ]
                 return l
 
+---- TODO: Cache results?
+codinglist :: HandlerT Browser IO [Entity Coding]
+codinglist = runDB 
+           $ select $ distinct
+           $ from $ \(pc `InnerJoin` c) -> do
+                on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
+                limit 50
+                orderBy [ asc (c ^. CodingName) ]
+                return c
 -- Chooser, to allow filtering for License, etc.
 -- For now it works via Page-Redirect and the Recource-Handler do the work
 -- The list of what options are available is currently given as an argument
--- TODO: Is it possible to run the Database-Query in here?
 -- TODO: Move to separate files
 -- TODO: Add other filters
 -- TODO: Preselect current value
-chooser :: [Entity License] -> Widget
-chooser ll = do
+chooser :: Widget
+chooser = do
+    ll <- handlerToWidget $ licenselist
+    cl <- handlerToWidget $ codinglist
     toWidget
       [hamlet|
        <form action="#">
-           <label>Gefundene Lizenzen
+           <label> Lizenzen 
                <select name="license" id="licensechooser" onclick="chooselicense()">
                    <option>-- all --
                    $forall Entity licenseid license <- ll
                        <option>
                            $with wikidataid <- fromSqlKey licenseid
                                $maybe name <- (licenseName license)
+                                   #{name}
+           <label> Programiersprachen 
+               <select name="coding" id="codingchooser" onclick="choosecoding()">
+                   <option>-- all --
+                   $forall Entity codingid coding <- cl
+                       <option>
+                           $with wikidataid <- fromSqlKey codingid
+                               $maybe name <- (codingName coding)
                                    #{name}
       |]
     toWidget 
@@ -106,12 +126,21 @@ chooser ll = do
                   window.location.href = "/bylicense/" + value;
                  }
           }
+          function choosecoding() { 
+            value = document.getElementById("codingchooser").value;
+            if(value === "-- all --") {
+                  window.location.href = "/";
+               }
+            else {
+                  window.location.href = "/bycoding/" + value;
+                 }
+          }
         |]
 
 -- Compose Hamlet- and Lucius-Template of the software list
 softwarelist :: (HandlerSite m ~ Browser, MonadWidget m) =>
-     [Entity Project] -> [Entity License] -> m ()
-softwarelist results ll = do
+     [Entity Project] -> m ()
+softwarelist results = do
        toWidget $(whamletFile "./templates/softwarelist.hamlet")
        toWidget $(luciusFile "./templates/softwarelist.lucius")
 
@@ -123,10 +152,9 @@ softwarelist results ll = do
 getHomeR :: Handler Html
 getHomeR = do
     results <- runDB $ P.selectList []  [P.LimitTo 50]
-    ll <- licenselist
     defaultLayout $ do
        setTitle "Floss-Browser"
-       softwarelist results ll
+       softwarelist results
 
 -- Show Details to one specified Software
 getSoftwareR :: String -> Handler Html
@@ -156,7 +184,6 @@ getSoftwareIdR qid = do
 -- Get Software my Licence-ID
 getByLicenseIdR :: Int -> Handler Html
 getByLicenseIdR license = do
-    ll <- licenselist
     results <- runDB
            $ select $ distinct
            $ from $ \(p `InnerJoin` pl) -> do
@@ -166,12 +193,11 @@ getByLicenseIdR license = do
                 return p
     defaultLayout $ do
       setTitle $ toHtml $ "Floss-Browser: Software licensed with license Q" ++ (show license)
-      softwarelist results ll
+      softwarelist results
 
 -- Get Software by License-Name
 getByLicenseR :: String -> Handler Html
 getByLicenseR license = do
-    ll <- licenselist
     results <- runDB
            $ select $ distinct
            $ from $ \(p `InnerJoin` pl `InnerJoin` l) -> do
@@ -182,12 +208,11 @@ getByLicenseR license = do
                 return p
     defaultLayout $ do
       setTitle $ toHtml $ "Floss-Browser: Software licensed with license " ++ license
-      softwarelist results ll
+      softwarelist results
 
 -- Get Software my Coding-ID
 getByCodingIdR :: Int -> Handler Html
 getByCodingIdR coding = do
-    ll <- licenselist
     results <- runDB
            $ select $ distinct
            $ from $ \(p `InnerJoin` pc) -> do
@@ -197,12 +222,11 @@ getByCodingIdR coding = do
                 return p
     defaultLayout $ do
       setTitle $ toHtml $ "Floss-Browser: Software written in Q" ++ (show coding)
-      softwarelist results ll
+      softwarelist results
 
 -- Get Software my Coding-Name
 getByCodingR :: String -> Handler Html
 getByCodingR coding = do
-    ll <- licenselist
     results <- runDB
            $ select $ distinct
            $ from $ \(p `InnerJoin` pc `InnerJoin` c) -> do
@@ -213,7 +237,7 @@ getByCodingR coding = do
                 return p
     defaultLayout $ do
       setTitle $ toHtml $ "Floss-Browser: Software written in " ++ coding
-      softwarelist results ll
+      softwarelist results
 
 
 main :: IO ()
