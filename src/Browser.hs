@@ -94,6 +94,7 @@ codinglist = runDB
 chooser :: Widget
 chooser = do
     ll <- handlerToWidget $ licenselist
+    cl <- handlerToWidget $ codinglist
     toWidget
       [hamlet|
        <form action="#">
@@ -125,13 +126,13 @@ chooser = do
                   window.location.href = "/bylicense/" + value;
                  }
           }
-          function chooselicense() { 
-            value = document.getElementById("licensechooser").value;
+          function choosecoding() { 
+            value = document.getElementById("codingchooser").value;
             if(value === "-- all --") {
                   window.location.href = "/";
                }
             else {
-                  window.location.href = "/bylicense/" + value;
+                  window.location.href = "/bycoding/" + value;
                  }
           }
         |]
