@@ -22,6 +22,7 @@ import qualified Database.Persist.Sqlite as P
 import Database.Persist.TH
 import Database.Esqueleto
 
+
 import System.Environment
 import Control.Monad.Trans.Resource (runResourceT)
 import Control.Monad.Logger (runStderrLoggingT)
@@ -66,6 +67,7 @@ header = do
 
 -- Query to get the list of all licenses
 -- TODO: Cache results?
+licenselist :: HandlerT Browser IO [Entity License]
 licenselist = runDB 
            $ select $ distinct
            $ from $ \(pl `InnerJoin` l) -> do
@@ -74,6 +76,15 @@ licenselist = runDB
                 orderBy [ asc (l ^. LicenseName) ]
                 return l
 
+---- TODO: Cache results?
+codinglist :: HandlerT Browser IO [Entity Coding]
+codinglist = runDB 
+           $ select $ distinct
+           $ from $ \(pc `InnerJoin` c) -> do
+                on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
+                limit 50
+                orderBy [ asc (c ^. CodingName) ]
+                return c
 -- Chooser, to allow filtering for License, etc.
 -- For now it works via Page-Redirect and the Recource-Handler do the work
 -- The list of what options are available is currently given as an argument
@@ -86,7 +97,7 @@ chooser = do
     toWidget
       [hamlet|
        <form action="#">
-           <label>Gefundene Lizenzen
+           <label> Lizenzen 
                <select name="license" id="licensechooser" onclick="chooselicense()">
                    <option>-- all --
                    $forall Entity licenseid license <- ll
@@ -94,9 +105,26 @@ chooser = do
                            $with wikidataid <- fromSqlKey licenseid
                                $maybe name <- (licenseName license)
                                    #{name}
+           <label> Programiersprachen 
+               <select name="coding" id="codingchooser" onclick="choosecoding()">
+                   <option>-- all --
+                   $forall Entity codingid coding <- cl
+                       <option>
+                           $with wikidataid <- fromSqlKey codingid
+                               $maybe name <- (codingName coding)
+                                   #{name}
       |]
     toWidget 
         [julius|
+          function chooselicense() { 
+            value = document.getElementById("licensechooser").value;
+            if(value === "-- all --") {
+                  window.location.href = "/";
+               }
+            else {
+                  window.location.href = "/bylicense/" + value;
+                 }
+          }
           function chooselicense() { 
             value = document.getElementById("licensechooser").value;
             if(value === "-- all --") {
