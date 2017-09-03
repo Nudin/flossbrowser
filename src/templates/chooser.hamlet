@@ -1,0 +1,17 @@
+<form action="#">
+    <label> Lizenzen&#32
+        <select name="license" id="licensechooser" onclick="filter()">
+            <option>-- all --
+            $forall Entity licenseid license' <- ll
+              $with wikidataid <- fromSqlKey licenseid
+                $maybe name <- (licenseName license')
+                    <option :(license == (unpack name)):selected>
+                          #{name}
+    <label> Programiersprachen&#32
+        <select name="coding" id="codingchooser" onclick="filter()">
+            <option>-- all --
+            $forall Entity codingid coding' <- cl
+                $with wikidataid <- fromSqlKey codingid
+                    $maybe name <- (codingName coding')
+                      <option :(coding == (unpack name)):selected>
+                          #{name}

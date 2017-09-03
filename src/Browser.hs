@@ -57,45 +57,44 @@ instance YesodPersist Browser where
 -- Simple Header providing a Home-Link
 header :: Widget
 header = do
-      toWidget
-        [lucius|
-            .header {
-                text-align: center
-            }
-        |]
-      toWidget
-        [hamlet|
-          <div class="header">
-            <a href=@{HomeR}>Home
-        |]
+    toWidget
+      [lucius|
+          .header {
+              text-align: center
+          }
+      |]
+    toWidget
+      [hamlet|
+        <div class="header">
+          <a href=@{HomeR}>Home
+      |]
 
 -- Query to get the list of all licenses
 -- TODO: Cache results?
 licenselist :: HandlerT Browser IO [Entity License]
 licenselist = runDB
-           $ select $ distinct
-           $ from $ \(pl `InnerJoin` l) -> do
-                on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
-                limit 50
-                orderBy [ asc (l ^. LicenseName) ]
-                return l
+    $ select $ distinct
+    $ from $ \(pl `InnerJoin` l) -> do
+         on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
+         limit 50
+         orderBy [ asc (l ^. LicenseName) ]
+         return l
 
 inlineif t a b = if t then a else b
 
 ---- TODO: Cache results?
 codinglist :: HandlerT Browser IO [Entity Coding]
 codinglist = runDB
-           $ select $ distinct
-           $ from $ \(pc `InnerJoin` c) -> do
-                on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
-                limit 50
-                orderBy [ asc (c ^. CodingName) ]
-                return c
+    $ select $ distinct
+    $ from $ \(pc `InnerJoin` c) -> do
+         on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
+         limit 50
+         orderBy [ asc (c ^. CodingName) ]
+         return c
+
 -- Chooser, to allow filtering for License, etc.
 -- For now it works via Page-Redirect and the Recource-Handler do the work
 -- The list of what options are available is currently given as an argument
--- TODO: Move to separate files
--- TODO: Add other filters
 chooser :: String -> String -> Widget
 chooser license coding = do
     ll <- handlerToWidget $ licenselist
@@ -103,30 +102,27 @@ chooser license coding = do
     toWidget $(hamletFile "./templates/chooser.hamlet")
     toWidget $(juliusFile "./templates/chooser.julius")
 
-runquery
-  :: (BaseBackend (YesodPersistBackend site) ~ SqlBackend,
-      YesodPersist site, IsPersistBackend (YesodPersistBackend site),
-      PersistQueryRead (YesodPersistBackend site),
-      PersistUniqueRead (YesodPersistBackend site)) =>
-     Maybe String -> Maybe String -> HandlerT site IO [Entity Project]
+runquery :: (BaseBackend (YesodPersistBackend site) ~ SqlBackend,
+             YesodPersist site, IsPersistBackend (YesodPersistBackend site),
+             PersistQueryRead (YesodPersistBackend site),
+             PersistUniqueRead (YesodPersistBackend site)) =>
+            Maybe String -> Maybe String -> HandlerT site IO [Entity Project]
 runquery license coding = runDB
-           $ select $ distinct
-           $ from $ \(p `InnerJoin` pl `InnerJoin` l `InnerJoin` pc `InnerJoin` c) -> do
-                on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
-                on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
-                on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
-                on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
-                case license of
-                  Just license' -> where_ ( l ^. LicenseName ==. val (Just (pack license')))
-                  Nothing -> return ()
-                case coding of
-                  Just coding' -> where_ ( c ^. CodingName ==. val (Just (pack coding')))
-                  Nothing -> return ()
-                limit 50
-                return p
+    $ select $ distinct
+    $ from $ \(p `InnerJoin` pl `InnerJoin` l `InnerJoin` pc `InnerJoin` c) -> do
+         on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
+         on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
+         on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
+         on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
+         case license of
+           Just license' -> where_ ( l ^. LicenseName ==. val (Just (pack license')))
+           Nothing -> return ()
+         case coding of
+           Just coding' -> where_ ( c ^. CodingName ==. val (Just (pack coding')))
+           Nothing -> return ()
+         limit 50
+         return p
 
----- Recourse handlers – mostly doing the same things -----
----- TODO: remove duplicate code                      -----
 
 -- List all Software
 getHomeR :: Handler Html
@@ -147,7 +143,7 @@ getSoftwareR software = do
     defaultLayout $ do
       setTitle $ toHtml $ "Flossbrowser: " ++ software
       toWidget $(whamletFile "./templates/software.hamlet")
-      --toWidget $(luciusFile "./templates/software.lucius")
+      toWidget $(luciusFile "./templates/software.lucius")
 
 
 -- Show Details to one specified Software
@@ -163,7 +159,7 @@ getSoftwareIdR qid = do
     defaultLayout $ do
       setTitle $ toHtml $ "Flossbrowser: " ++ software
       toWidget $(whamletFile "./templates/software.hamlet")
-      --toWidget $(luciusFile "./templates/software.lucius")
+      toWidget $(luciusFile "./templates/software.lucius")
 
 getFilterN :: String -> String -> String -> Handler Html
 getFilterN os license coding = do
@@ -198,9 +194,9 @@ getByCodingR coding = getFilterN "*" "*" coding
 
 main :: IO ()
 main = do
-  t <- lookupEnv "PORT"
-  let port = fromMaybe 3000 $ toint <$> t
-  runStderrLoggingT $ P.withSqlitePool sqliteDB 10 $
-       \pool -> liftIO $ warp port $ Browser pool
-    where
-      toint s = read s :: Int
+    t <- lookupEnv "PORT"
+    let port = fromMaybe 3000 $ toint <$> t
+    runStderrLoggingT $ P.withSqlitePool sqliteDB 10 $
+         \pool -> liftIO $ warp port $ Browser pool
+      where
+        toint s = read s :: Int

@@ -1,0 +1,19 @@
+function filter() { 
+    license = document.getElementById("licensechooser").value;
+    coding = document.getElementById("codingchooser").value;
+    newurl="/*/";
+    if(license === "-- all --") {
+        newurl += "*/";
+    }
+    else {
+        newurl += license + "/"
+    }
+    if(coding === "-- all --") {
+        newurl += "*/";
+    }
+    else {
+        newurl += coding + "/";
+    }
+    console.log(newurl);
+    window.location.href = newurl;
+}
