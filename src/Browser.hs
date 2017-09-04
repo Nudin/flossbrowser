@@ -18,6 +18,7 @@ import           Text.Lucius
 import           Yesod                        hiding ((==.))
 
 import           Data.Text
+import           Data.List
 import           Database.Esqueleto
 import qualified Database.Persist             as P
 import qualified Database.Persist.Sqlite      as P
@@ -139,7 +140,16 @@ getHomeR = do
 -- Show Details to one specified Software
 getSoftwareR :: String -> Handler Html
 getSoftwareR software = do
-    results <- runDB $ P.selectList [ ProjectName P.==. (Just $ pack software) ]  [P.LimitTo 1]
+    projects <- runDB $ P.selectList [ ProjectName P.==. (Just $ pack software) ]  [P.LimitTo 1]
+    results <- runDB 
+           $ select $ distinct
+           $ from $ \(p `InnerJoin` pl `InnerJoin` l `InnerJoin` pc `InnerJoin` c) -> do
+                on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
+                on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
+                on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
+                on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
+                where_ ( p ^. ProjectName ==. val (Just (pack software)))
+                return (l, c)
     defaultLayout $ do
       setTitle $ toHtml $ "Flossbrowser: " ++ software
       toWidget $(whamletFile "./templates/software.hamlet")
@@ -149,12 +159,21 @@ getSoftwareR software = do
 -- Show Details to one specified Software
 getSoftwareIdR :: Int -> Handler Html
 getSoftwareIdR qid = do
-    results <- runDB
+    projects <- runDB
            $ select $ distinct
            $ from $ \p -> do
                 where_ ( p ^. ProjectId ==. val (qidtokey qid) )
                 limit 1
                 return p
+    results <- runDB 
+           $ select $ distinct
+           $ from $ \(p `InnerJoin` pl `InnerJoin` l `InnerJoin` pc `InnerJoin` c) -> do
+                on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
+                on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
+                on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
+                on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
+                where_ ( p ^. ProjectId ==. val (qidtokey qid) )
+                return (l, c)
     let software = "Q" ++ (show qid)
     defaultLayout $ do
       setTitle $ toHtml $ "Flossbrowser: " ++ software

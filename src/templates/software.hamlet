@@ -2,10 +2,23 @@
 
 <h1>#{software}
 
+
+<h2> Gefundene Information
 <ul>
-  $forall Entity projectid project <- results
-    $with wikidataid <- fromSqlKey projectid
-        <li> Link:&nbsp;
-            <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata</a>,
-            $maybe link <- (projectLink project)
-                <a href="#{link}">Webseite
+    $forall Entity projectid project <- projects
+      $with wikidataid <- fromSqlKey projectid
+        $with (licenses, codings) <- unzip results
+          <li> Link:&nbsp;
+              <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata</a>,
+              $maybe link <- (projectLink project)
+                  <a href="#{link}">Webseite
+          <li> License:&nbsp;
+              $maybe ll <- sequence $ nub $ fmap (licenseName . entityVal) licenses
+                #{Data.Text.intercalate "; " ll}
+              $nothing
+                 Unknown!
+          <li> Programing language:&nbsp;
+              $maybe cl <- sequence $ nub $ fmap (codingName . entityVal) codings
+                #{Data.Text.intercalate "; " cl}
+              $nothing
+                 Unknown!
