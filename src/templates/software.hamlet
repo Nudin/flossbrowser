@@ -1,12 +1,14 @@
 ^{header}
 
-<h1>#{software}
 
-
-<h2> Gefundene Information
-<ul>
-    $forall Entity projectid project <- projects
-      $with wikidataid <- fromSqlKey projectid
+$forall Entity projectid project <- projects
+  $with wikidataid <- fromSqlKey projectid
+    $maybe title <- projectName project
+        <h1>#{title}
+    $nothing
+        <h1 .notitle>
+            Q#{wikidataid}
+    <ul>
         $with (licenses, codings) <- unzip results
           <li> Link:&nbsp;
               <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata</a>,

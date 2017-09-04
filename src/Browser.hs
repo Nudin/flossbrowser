@@ -24,7 +24,8 @@ import qualified Database.Persist             as P
 import qualified Database.Persist.Sqlite      as P
 import           Database.Persist.TH
 
-
+import           Data.Monoid
+import           Control.Monad
 import           Control.Monad.Logger         (runStderrLoggingT)
 import           Control.Monad.Trans.Resource (runResourceT)
 import           Data.Maybe
@@ -137,35 +138,14 @@ getHomeR = do
        toWidget $(whamletFile "./templates/softwarelist.hamlet")
        toWidget $(luciusFile "./templates/softwarelist.lucius")
 
--- Show Details to one specified Software
-getSoftwareR :: String -> Handler Html
-getSoftwareR software = do
-    projects <- runDB $ P.selectList [ ProjectName P.==. (Just $ pack software) ]  [P.LimitTo 1]
-    results <- runDB 
-           $ select $ distinct
-           $ from $ \(p `InnerJoin` pl `InnerJoin` l `InnerJoin` pc `InnerJoin` c) -> do
-                on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
-                on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
-                on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
-                on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
-                where_ ( p ^. ProjectName ==. val (Just (pack software)))
-                return (l, c)
-    defaultLayout $ do
-      setTitle $ toHtml $ "Flossbrowser: " ++ software
-      toWidget $(whamletFile "./templates/software.hamlet")
-      toWidget $(luciusFile "./templates/software.lucius")
-
-
--- Show Details to one specified Software
-getSoftwareIdR :: Int -> Handler Html
-getSoftwareIdR qid = do
-    projects <- runDB
+softwareWidget qid = do
+    projects <- handlerToWidget $ runDB
            $ select $ distinct
            $ from $ \p -> do
                 where_ ( p ^. ProjectId ==. val (qidtokey qid) )
                 limit 1
                 return p
-    results <- runDB 
+    results <- handlerToWidget $ runDB
            $ select $ distinct
            $ from $ \(p `InnerJoin` pl `InnerJoin` l `InnerJoin` pc `InnerJoin` c) -> do
                 on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
@@ -175,10 +155,20 @@ getSoftwareIdR qid = do
                 where_ ( p ^. ProjectId ==. val (qidtokey qid) )
                 return (l, c)
     let software = "Q" ++ (show qid)
-    defaultLayout $ do
-      setTitle $ toHtml $ "Flossbrowser: " ++ software
-      toWidget $(whamletFile "./templates/software.hamlet")
-      toWidget $(luciusFile "./templates/software.lucius")
+    setTitle $ toHtml $ "Flossbrowser: " ++ software
+    toWidget $(whamletFile "./templates/software.hamlet")
+    toWidget $(luciusFile "./templates/software.lucius")
+
+-- Show Details to one specified Software
+getSoftwareR :: String -> Handler Html
+getSoftwareR software = do
+    projects <- runDB $ P.selectList [ ProjectName P.==. (Just $ pack software) ]  []
+    defaultLayout $ fmap mconcat $ sequence $ -- TODO: is there a more direct way?
+      fmap ( softwareWidget . fromIntegral . fromSqlKey . entityKey ) projects
+
+-- Show Details to one specified Software
+getSoftwareIdR :: Int -> Handler Html
+getSoftwareIdR = defaultLayout . softwareWidget
 
 getFilterN :: String -> String -> String -> Handler Html
 getFilterN os license coding = do
