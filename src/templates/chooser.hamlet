@@ -1,4 +1,12 @@
 <form action="#">
+    <label> OS&#32
+        <select name="license" id="oschooser" onclick="filter()">
+            <option>-- all --
+            $forall Entity osid os' <- ol
+              $with wikidataid <- fromSqlKey osid
+                $maybe name <- (osName os')
+                    <option :(os == (unpack name)):selected>
+                          #{name}
     <label> Lizenzen&#32
         <select name="license" id="licensechooser" onclick="filter()">
             <option>-- all --

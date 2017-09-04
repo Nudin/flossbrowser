@@ -78,11 +78,17 @@ licenselist = runDB
     $ select $ distinct
     $ from $ \(pl `InnerJoin` l) -> do
          on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
-         limit 50
          orderBy [ asc (l ^. LicenseName) ]
          return l
 
-inlineif t a b = if t then a else b
+---- TODO: Cache results?
+oslist :: HandlerT Browser IO [Entity Os]
+oslist = runDB
+    $ select $ distinct
+    $ from $ \(po `InnerJoin` o) -> do
+         on $ o ^. OsId ==. po ^. ProjectOsFkOsId
+         orderBy [ asc (o ^. OsName) ]
+         return o
 
 ---- TODO: Cache results?
 codinglist :: HandlerT Browser IO [Entity Coding]
@@ -90,17 +96,17 @@ codinglist = runDB
     $ select $ distinct
     $ from $ \(pc `InnerJoin` c) -> do
          on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
-         limit 50
          orderBy [ asc (c ^. CodingName) ]
          return c
 
 -- Chooser, to allow filtering for License, etc.
 -- For now it works via Page-Redirect and the Recource-Handler do the work
 -- The list of what options are available is currently given as an argument
-chooser :: String -> String -> Widget
-chooser license coding = do
+chooser :: String -> String -> String -> Widget
+chooser os license coding = do
     ll <- handlerToWidget $ licenselist
     cl <- handlerToWidget $ codinglist
+    ol <- handlerToWidget $ oslist
     toWidget $(hamletFile "./templates/chooser.hamlet")
     toWidget $(juliusFile "./templates/chooser.julius")
 
@@ -108,14 +114,20 @@ runquery :: (BaseBackend (YesodPersistBackend site) ~ SqlBackend,
              YesodPersist site, IsPersistBackend (YesodPersistBackend site),
              PersistQueryRead (YesodPersistBackend site),
              PersistUniqueRead (YesodPersistBackend site)) =>
-            Maybe String -> Maybe String -> HandlerT site IO [Entity Project]
-runquery license coding = runDB
+            Maybe String -> Maybe String -> Maybe String -> HandlerT site IO [Entity Project]
+runquery os license coding = runDB
     $ select $ distinct
-    $ from $ \(p `InnerJoin` pl `InnerJoin` l `InnerJoin` pc `InnerJoin` c) -> do
+    $ from $ \(p `InnerJoin` pl `InnerJoin` l `InnerJoin` pc
+              `InnerJoin` c `InnerJoin` o `InnerJoin` po) -> do
          on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
          on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
+         on $ p ^. ProjectId ==. po ^. ProjectOsFkProjectId
          on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
-         on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
+         on $ c ^. CodingId  ==. pc ^. ProjectCodingFkCodingId
+         on $ o ^. OsId      ==. po ^. ProjectOsFkOsId
+         case os of
+           Just os' -> where_ ( o ^. OsName ==. val (Just (pack os')))
+           Nothing -> return ()
          case license of
            Just license' -> where_ ( l ^. LicenseName ==. val (Just (pack license')))
            Nothing -> return ()
@@ -133,11 +145,13 @@ getHomeR = do
     results <- runDB $ P.selectList []  [P.LimitTo 50]
     defaultLayout $ do
        setTitle "Floss-Browser"
+       let os = "*"
        let coding = "*"
        let license = "*"
        toWidget $(whamletFile "./templates/softwarelist.hamlet")
        toWidget $(luciusFile "./templates/softwarelist.lucius")
 
+-- TODO: Maybe give key instead of qid? 
 softwareWidget qid = do
     projects <- handlerToWidget $ runDB
            $ select $ distinct
@@ -172,7 +186,7 @@ getSoftwareIdR = defaultLayout . softwareWidget
 
 getFilterN :: String -> String -> String -> Handler Html
 getFilterN os license coding = do
-    results <- runquery (check license) (check coding)
+    results <- runquery (check os) (check license) (check coding)
     defaultLayout $ do
       setTitle $ toHtml $ "Floss-Browser: Software licensed with license " ++ license
       toWidget $(whamletFile "./templates/softwarelist.hamlet")

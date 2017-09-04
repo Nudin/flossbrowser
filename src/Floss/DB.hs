@@ -31,16 +31,23 @@ sqliteDB = "./test.sql"
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Project
     name Text Maybe
---    description Text
+    description Text Maybe
     link Text Maybe
 --    logo URL
 --    img  URL
+    deriving Show
+Os
+    name Text Maybe
     deriving Show
 License
     name Text Maybe
     deriving Show
 Coding
     name Text Maybe
+    deriving Show
+ProjectOs
+    fkProjectId ProjectId
+    fkOsId OsId
     deriving Show
 ProjectCoding
     fkProjectId ProjectId

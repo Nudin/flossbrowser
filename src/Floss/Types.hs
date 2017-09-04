@@ -15,12 +15,14 @@ import qualified Data.Generics as Gen
 
 -- Datatype for a Software item
 data Software = Software {
-  qid :: !WikidataItemID,
-  name :: Maybe Text,
-  coding  :: Maybe WikidataItemID,
-  license :: Maybe WikidataItemID,
-  website :: Maybe Text,
-  version :: Maybe Text
+  qid         :: !WikidataItemID,
+  name        :: Maybe Text,
+  description :: Maybe Text,
+  os          :: Maybe WikidataItemID,
+  coding      :: Maybe WikidataItemID,
+  license     :: Maybe WikidataItemID,
+  website     :: Maybe Text,
+  version     :: Maybe Text
   } deriving (Show, Generic, Gen.Typeable, Gen.Data)
 
 data License' = License' {
@@ -35,7 +37,13 @@ data Coding' = Coding' {
   cname :: Maybe Text
 } deriving (Show, Generic, Gen.Typeable, Gen.Data)
 
+data Os' = Os' {
+  oqid  :: !WikidataItemID,
+  oname :: Maybe Text
+} deriving (Show, Generic, Gen.Typeable, Gen.Data)
+
 data CodingList = CodingList [Coding'] deriving (Show, Generic) 
+data OsList = OsList [Os'] deriving (Show, Generic) 
 
 
 {- Inspired by:
@@ -54,6 +62,7 @@ data Collection = Collection [Software] deriving (Show, Generic)
 data SPARQLResponse = SPARQLResponse Collection
                     | SPARQLResponseLicenses LicenseList
                     | SPARQLResponseCodings CodingList
+                    | SPARQLResponseOs OsList
                     deriving (Show, Generic)
 
 -- Can't we do this more idiomatic? Or at least prettier?
@@ -69,6 +78,10 @@ instance FromJSON Software where
                         projectiri <- project      .:  "value"
                         return $ urltoid projectiri
                  <*> maybeValue "name" o
+                 <*> maybeValue "description" o
+                 <*> do
+                   x <- (maybeValue "os" o)
+                   return $ fmap (urltoid . unpack) x
                  <*> do
                    x <- (maybeValue "language" o)
                    return $ fmap (urltoid . unpack) x
@@ -92,6 +105,14 @@ instance FromJSON LicenseList where
     LicenseList <$> o .: "bindings"
   parseJSON _ = mzero
 
+instance FromJSON Os' where
+    parseJSON (Object o) =
+        Os' <$> do oid <- o .:  "os"
+                   oidiri <- oid      .:  "value"
+                   return $ urltoid oidiri
+                 <*> maybeValue "osLabel" o
+    parseJSON _ = mzero
+
 instance FromJSON Coding' where
     parseJSON (Object o) =
         Coding' <$> do cid <- o .:  "language"
@@ -99,6 +120,11 @@ instance FromJSON Coding' where
                        return $ urltoid cidiri
                  <*> maybeValue "languageLabel" o
     parseJSON _ = mzero
+
+instance FromJSON OsList where
+  parseJSON (Object o) =
+    OsList <$> o .: "bindings"
+  parseJSON _ = mzero
 
 instance FromJSON CodingList where
   parseJSON (Object o) =
@@ -113,6 +139,7 @@ instance FromJSON Collection where
 instance FromJSON SPARQLResponse where
   parseJSON (Object o) = do
     (SPARQLResponse <$> res o) <|>
+      (SPARQLResponseOs <$> res o) <|>
       (SPARQLResponseLicenses <$> res o) <|>
       (SPARQLResponseCodings <$> res o)
       where

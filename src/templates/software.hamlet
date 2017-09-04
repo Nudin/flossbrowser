@@ -9,11 +9,13 @@ $forall Entity projectid project <- projects
         <h1 .notitle>
             Q#{wikidataid}
     <ul>
-        $with (licenses, codings) <- unzip results
-          <li> Link:&nbsp;
-              <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata</a>,
-              $maybe link <- (projectLink project)
-                  <a href="#{link}">Webseite
+      $maybe desc <- projectDescription project
+          <li>#{desc}
+      <li> Link:&nbsp;
+          <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata</a>,
+          $maybe link <- (projectLink project)
+              <a href="#{link}">Webseite
+      $with (licenses, codings) <- unzip results
           <li> License:&nbsp;
               $maybe ll <- sequence $ nub $ fmap (licenseName . entityVal) licenses
                 #{Data.Text.intercalate "; " ll}
