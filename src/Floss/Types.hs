@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveDataTypeable #-}
 
 module Floss.Types where
 
@@ -23,40 +22,27 @@ data Software = Software {
   license     :: Maybe WikidataItemID,
   website     :: Maybe Text,
   version     :: Maybe Text
-  } deriving (Show, Generic, Gen.Typeable, Gen.Data)
+  } deriving (Show, Generic)
 
 data License' = License' {
   lqid  :: !WikidataItemID,
   lname :: Maybe Text
-} deriving (Show, Generic, Gen.Typeable, Gen.Data)
+} deriving (Show, Generic)
 
 data LicenseList = LicenseList [License'] deriving (Show, Generic) 
 
 data Coding' = Coding' {
   cqid  :: !WikidataItemID,
   cname :: Maybe Text
-} deriving (Show, Generic, Gen.Typeable, Gen.Data)
+} deriving (Show, Generic)
 
 data Os' = Os' {
   oqid  :: !WikidataItemID,
   oname :: Maybe Text
-} deriving (Show, Generic, Gen.Typeable, Gen.Data)
+} deriving (Show, Generic)
 
 data CodingList = CodingList [Coding'] deriving (Show, Generic) 
 data OsList = OsList [Os'] deriving (Show, Generic) 
-
-
-{- Inspired by:
- - https://stackoverflow.com/questions/22807619/systematically-applying-a-function-to-all-fields-of-a-haskell-record
- -}
-merge :: Software -> Software -> Software
-merge a b = let b'  = Gen.gzipWithT mergeText a b
-                b'' = Gen.gzipWithT mergeText a b'
-            in Gen.gzipWithT mergeText a b''
-
-mergeText :: (Gen.Data a, Gen.Data b) => a -> b -> b
-mergeText = Gen.mkQ id (\a -> Gen.mkT (\b -> append <$> a <*> b :: Maybe Text))
-
 
 data Collection = Collection [Software] deriving (Show, Generic)
 data SPARQLResponse = SPARQLResponse Collection
@@ -80,13 +66,13 @@ instance FromJSON Software where
                  <*> maybeValue "name" o
                  <*> maybeValue "description" o
                  <*> do
-                   x <- (maybeValue "os" o)
+                   x <- maybeValue "os" o
                    return $ fmap (urltoid . unpack) x
                  <*> do
-                   x <- (maybeValue "language" o)
+                   x <- maybeValue "language" o
                    return $ fmap (urltoid . unpack) x
                  <*> do
-                   x <- (maybeValue "license" o)
+                   x <- maybeValue "license" o
                    return $ fmap (urltoid . unpack) x
                  <*> maybeValue "website" o
                  <*> maybeValue "version" o
