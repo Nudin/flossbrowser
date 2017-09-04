@@ -110,11 +110,10 @@ chooser os license coding = do
     toWidget $(hamletFile "./templates/chooser.hamlet")
     toWidget $(juliusFile "./templates/chooser.julius")
 
-runquery :: (BaseBackend (YesodPersistBackend site) ~ SqlBackend,
-             YesodPersist site, IsPersistBackend (YesodPersistBackend site),
-             PersistQueryRead (YesodPersistBackend site),
-             PersistUniqueRead (YesodPersistBackend site)) =>
-            Maybe String -> Maybe String -> Maybe String -> HandlerT site IO [Entity Project]
+runquery
+  :: (YesodPersist site, YesodPersistBackend site ~ SqlBackend) =>
+     Maybe String -> Maybe String -> Maybe String
+      -> HandlerT site IO [Entity Project]
 runquery os license coding = runDB
     $ select $ distinct
     $ from $ \(p `InnerJoin` pl `InnerJoin` l `InnerJoin` pc
