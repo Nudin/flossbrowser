@@ -151,3 +151,44 @@ strtoid = strtoid_ where
 -- Convert IRI of Wikidata-Item to an Int-ID
 urltoid :: String -> WikidataItemID
 urltoid = strtoid . Prelude.drop 32
+
+
+data Empty = Empty
+data FlossResource a = FlossResource a
+
+class FlossSource a where
+    asResource :: a -> FlossResource a
+    fromResource :: FlossResource a -> a
+    fromResource (FlossResource r) = r
+
+instance FlossSource Collection where
+    asResource r@(Collection c) = FlossResource r
+instance FlossSource LicenseList where
+    asResource r@(LicenseList c) = FlossResource r
+instance FlossSource CodingList where
+    asResource r@(CodingList c) = FlossResource r
+instance FlossSource OsList where
+    asResource r@(OsList c) = FlossResource r
+instance FlossSource Empty where
+    asResource Empty = FlossResource Empty
+
+
+class FromSPARQL a where
+    fromSPARQLResponse :: Maybe SPARQLResponse -> FlossResource a
+
+instance FromSPARQL Collection where
+    fromSPARQLResponse (Just (SPARQLResponse c@(Collection _))) = asResource c
+
+instance FromSPARQL LicenseList where
+    fromSPARQLResponse (Just (SPARQLResponseLicenses c@(LicenseList _))) = asResource c
+
+instance FromSPARQL CodingList where
+    fromSPARQLResponse (Just (SPARQLResponseCodings c@(CodingList _))) = asResource c
+
+instance FromSPARQL OsList where
+    fromSPARQLResponse (Just (SPARQLResponseOs c@(OsList _))) = asResource c
+
+instance FromSPARQL Empty where
+    fromSPARQLResponse Nothing = asResource Empty
+
+

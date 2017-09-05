@@ -1,12 +1,17 @@
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE   QuasiQuotes
+             , OverloadedStrings
+             , DataKinds
+             , TypeFamilies
+             , TypeOperators
+             , GADTs #-}
 
 
 module Floss.Query(
-    getCollection,
-    getLicenses,
-    getCodings,
-    getOs,
+    getResource,
+    query,
+    queryLicense,
+    queryCodings,
+    queryOs,
 ) where
 
 import Str(str)
@@ -74,42 +79,10 @@ SELECT DISTINCT ?os ?osLabel WHERE {
 escapeQuery :: String -> String
 escapeQuery = (url ++) . escapeURIString isAllowedInURI
 
-getCollection :: Manager -> IO Collection
-getCollection man = do
+getResource :: FromSPARQL a => String -> Manager -> IO (FlossResource a)
+getResource query man = do
     req <- parseUrl $ escapeQuery query
     res <- httpLbs req man
     let body   = responseBody res
         mbList = decode body :: Maybe SPARQLResponse
-    case mbList of
-        (Just (SPARQLResponse c)) -> return c
-        _                         -> return $ Collection []
-
-getLicenses :: Manager -> IO LicenseList
-getLicenses man = do
-    req <- parseUrl $ escapeQuery queryLicense
-    res <- httpLbs req man
-    let body   = responseBody res
-        mbList = decode body :: Maybe SPARQLResponse
-    case mbList of
-        (Just (SPARQLResponseLicenses c)) -> return c
-        _                                 -> return $ LicenseList []
-
-getCodings :: Manager -> IO CodingList
-getCodings man = do
-    req <- parseUrl $ escapeQuery queryCodings
-    res <- httpLbs req man
-    let body   = responseBody res
-        mbList = decode body :: Maybe SPARQLResponse
-    case mbList of
-        (Just (SPARQLResponseCodings c)) -> return c
-        _                                -> return $ CodingList []
-
-getOs :: Manager -> IO OsList
-getOs man = do
-    req <- parseUrl $ escapeQuery queryOs
-    res <- httpLbs req man
-    let body   = responseBody res
-        mbList = decode body :: Maybe SPARQLResponse
-    case mbList of
-        (Just (SPARQLResponseOs c)) -> return c
-        _                                -> return $ OsList []
+    return $ fromSPARQLResponse mbList

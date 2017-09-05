@@ -76,12 +76,12 @@ initDB :: IO ()
 initDB = runSqlite sqliteDB $ do
     runMigration migrateAll
     manager <- liftIO $ newManager tlsManagerSettings
-    l   <- liftIO $ getLicenses manager
-    insertlicenses l
-    c   <- liftIO $ getCodings manager
-    insertcodings c
-    o   <- liftIO $ getOs manager
-    insertsystems o
-    col <- liftIO $ getCollection manager
-    insertall col
+    l   <- liftIO $ getResource queryLicense manager
+    insertlicenses $ fromResource l
+    c   <- liftIO $ getResource queryCodings manager
+    insertcodings $ fromResource c
+    o   <- liftIO $ getResource queryOs manager
+    insertsystems $ fromResource o
+    col <- liftIO $ getResource query manager
+    insertall $ fromResource col
     return ()
