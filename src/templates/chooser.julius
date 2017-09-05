@@ -1,7 +1,11 @@
+function encode(s) {
+    return s.replace("/", "%2F");
+}
+
 function filter() { 
-    license = document.getElementById("licensechooser").value;
-    coding = document.getElementById("codingchooser").value;
-    os = document.getElementById("oschooser").value;
+    license = encode(document.getElementById("licensechooser").value);
+    coding = encode(document.getElementById("codingchooser").value);
+    os = encode(document.getElementById("oschooser").value);
     newurl="/";
     if(os === "-- all --") {
         newurl += "*/";
