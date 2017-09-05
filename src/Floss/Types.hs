@@ -123,7 +123,7 @@ instance FromJSON Collection where
   parseJSON _ = mzero
 
 instance FromJSON SPARQLResponse where
-  parseJSON (Object o) = do
+  parseJSON (Object o) =
     (SPARQLResponse <$> res o) <|>
       (SPARQLResponseOs <$> res o) <|>
       (SPARQLResponseLicenses <$> res o) <|>
@@ -158,19 +158,15 @@ data FlossResource a = FlossResource a
 
 class FlossSource a where
     asResource :: a -> FlossResource a
+    asResource = FlossResource
     fromResource :: FlossResource a -> a
     fromResource (FlossResource r) = r
 
-instance FlossSource Collection where
-    asResource r@(Collection c) = FlossResource r
-instance FlossSource LicenseList where
-    asResource r@(LicenseList c) = FlossResource r
-instance FlossSource CodingList where
-    asResource r@(CodingList c) = FlossResource r
-instance FlossSource OsList where
-    asResource r@(OsList c) = FlossResource r
-instance FlossSource Empty where
-    asResource Empty = FlossResource Empty
+instance FlossSource Collection
+instance FlossSource LicenseList
+instance FlossSource CodingList
+instance FlossSource OsList
+instance FlossSource Empty
 
 
 class FromSPARQL a where
@@ -178,16 +174,12 @@ class FromSPARQL a where
 
 instance FromSPARQL Collection where
     fromSPARQLResponse (Just (SPARQLResponse c@(Collection _))) = asResource c
-
 instance FromSPARQL LicenseList where
     fromSPARQLResponse (Just (SPARQLResponseLicenses c@(LicenseList _))) = asResource c
-
 instance FromSPARQL CodingList where
     fromSPARQLResponse (Just (SPARQLResponseCodings c@(CodingList _))) = asResource c
-
 instance FromSPARQL OsList where
     fromSPARQLResponse (Just (SPARQLResponseOs c@(OsList _))) = asResource c
-
 instance FromSPARQL Empty where
     fromSPARQLResponse Nothing = asResource Empty
 
