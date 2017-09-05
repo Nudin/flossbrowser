@@ -24,6 +24,7 @@ import qualified Database.Persist             as P
 import qualified Database.Persist.Sqlite      as P
 import           Database.Persist.TH
 
+import           Data.Foldable                as F
 import           Data.Monoid
 import           Control.Monad
 import           Control.Monad.Logger         (runStderrLoggingT)
@@ -70,6 +71,16 @@ header = do
         <div class="header">
           <a href=@{HomeR}>Home
       |]
+
+-- Generate a nice Title for the page
+gentitle :: String -> String -> String -> String
+gentitle o l c = "Flossbrowser: Software" ++
+    F.concat (Data.List.zipWith (+++) texts [o, l, c])
+        where
+          (+++) :: String -> String -> String
+          (+++) _ "*" = ""
+          (+++) a b = (++) a b
+          texts = [" for ", " licenced under ", " written in "]
 
 -- Query to get the list of all licenses
 -- TODO: Cache results?
@@ -187,7 +198,7 @@ getFilterN :: String -> String -> String -> Handler Html
 getFilterN os license coding = do
     results <- runquery (check os) (check license) (check coding)
     defaultLayout $ do
-      setTitle $ toHtml $ "Floss-Browser: Software licensed with license " ++ license
+      setTitle $ toHtml $ gentitle os license coding
       toWidget $(whamletFile "./templates/softwarelist.hamlet")
       toWidget $(luciusFile "./templates/softwarelist.lucius")
     where
