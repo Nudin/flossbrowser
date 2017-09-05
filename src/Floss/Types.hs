@@ -169,7 +169,7 @@ instance FlossSource OsList
 instance FlossSource Empty
 
 
-class FromSPARQL a where
+class FlossSource a => FromSPARQL a where
     fromSPARQLResponse :: Maybe SPARQLResponse -> FlossResource a
 
 instance FromSPARQL Collection where
