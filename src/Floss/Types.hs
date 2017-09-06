@@ -29,7 +29,7 @@ data License' = License' {
   lname :: Maybe Text
 } deriving (Show, Generic)
 
-data LicenseList = LicenseList [License'] deriving (Show, Generic) 
+newtype LicenseList = LicenseList [License'] deriving (Show, Generic) 
 
 data Coding' = Coding' {
   cqid  :: !WikidataItemID,
@@ -41,10 +41,10 @@ data Os' = Os' {
   oname :: Maybe Text
 } deriving (Show, Generic)
 
-data CodingList = CodingList [Coding'] deriving (Show, Generic) 
-data OsList = OsList [Os'] deriving (Show, Generic) 
+newtype CodingList = CodingList [Coding'] deriving (Show, Generic) 
+newtype OsList = OsList [Os'] deriving (Show, Generic) 
 
-data Collection = Collection [Software] deriving (Show, Generic)
+newtype Collection = Collection [Software] deriving (Show, Generic)
 data SPARQLResponse = SPARQLResponse Collection
                     | SPARQLResponseLicenses LicenseList
                     | SPARQLResponseCodings CodingList
@@ -78,48 +78,38 @@ instance FromJSON Software where
                  <*> maybeValue "version" o
     parseJSON _ = mzero
 
+
+--TODO rename
+test c s o =
+    c <$> do id <- o .: s
+             iri <- id .: "value"
+             return $ urltoid iri
+      <*> maybeValue (s `Data.Text.append`  "Label") o
+test _ _ _ = mzero
+
 instance FromJSON License' where
-    parseJSON (Object o) =
-        License' <$> do lid <- o .:  "license"
-                        lidiri <- lid      .:  "value"
-                        return $ urltoid lidiri
-                 <*> maybeValue "licenseLabel" o
-    parseJSON _ = mzero
+    parseJSON (Object o) = test License' "license" o
 
 instance FromJSON LicenseList where
-  parseJSON (Object o) =
-    LicenseList <$> o .: "bindings"
+  parseJSON (Object o) = LicenseList <$> o .: "bindings"
   parseJSON _ = mzero
 
 instance FromJSON Os' where
-    parseJSON (Object o) =
-        Os' <$> do oid <- o .:  "os"
-                   oidiri <- oid      .:  "value"
-                   return $ urltoid oidiri
-                 <*> maybeValue "osLabel" o
-    parseJSON _ = mzero
+    parseJSON (Object o) = test Os' "os" o
 
 instance FromJSON Coding' where
-    parseJSON (Object o) =
-        Coding' <$> do cid <- o .:  "language"
-                       cidiri <- cid      .:  "value"
-                       return $ urltoid cidiri
-                 <*> maybeValue "languageLabel" o
-    parseJSON _ = mzero
+    parseJSON (Object o) = test Coding' "language" o
 
 instance FromJSON OsList where
-  parseJSON (Object o) =
-    OsList <$> o .: "bindings"
+  parseJSON (Object o) = OsList <$> o .: "bindings"
   parseJSON _ = mzero
 
 instance FromJSON CodingList where
-  parseJSON (Object o) =
-    CodingList <$> o .: "bindings"
+  parseJSON (Object o) = CodingList <$> o .: "bindings"
   parseJSON _ = mzero
 
 instance FromJSON Collection where
-  parseJSON (Object o) =
-    Collection <$> o .: "bindings"
+  parseJSON (Object o) = Collection <$> o .: "bindings"
   parseJSON _ = mzero
 
 instance FromJSON SPARQLResponse where
@@ -133,28 +123,9 @@ instance FromJSON SPARQLResponse where
         res = flip (.:) "results"
   parseJSON _ = mzero
 
--- TODO think about using Network.URL instead
-type URL = Text
-
--- TODO: Decide type, newtype, data or no new type at all?
---data WikidataItemID = WikidataItemID Int deriving (Show, Eq)
-type WikidataItemID = Int
-
--- Convert String to Int
--- fallback -1 ← should we panic instead?
-strtoid :: String -> WikidataItemID
-strtoid = strtoid_ where
-  strtoid_ :: String -> Int
-  strtoid_ "" = -1
-  strtoid_ s = read s
-
--- Convert IRI of Wikidata-Item to an Int-ID
-urltoid :: String -> WikidataItemID
-urltoid = strtoid . Prelude.drop 32
-
 
 data Empty = Empty
-data FlossResource a = FlossResource a
+newtype FlossResource a = FlossResource a
 
 class FlossSource a where
     asResource :: a -> FlossResource a
@@ -183,4 +154,23 @@ instance FromSPARQL OsList where
 instance FromSPARQL Empty where
     fromSPARQLResponse Nothing = asResource Empty
 
+
+-- TODO think about using Network.URL instead
+type URL = Text
+
+-- TODO: Decide type, newtype, data or no new type at all?
+--data WikidataItemID = WikidataItemID Int deriving (Show, Eq)
+type WikidataItemID = Int
+
+-- Convert String to Int
+-- fallback -1 ← should we panic instead?
+strtoid :: String -> WikidataItemID
+strtoid = strtoid_ where
+  strtoid_ :: String -> Int
+  strtoid_ "" = -1
+  strtoid_ s = read s
+
+-- Convert IRI of Wikidata-Item to an Int-ID
+urltoid :: String -> WikidataItemID
+urltoid = strtoid . Prelude.drop 32
 
