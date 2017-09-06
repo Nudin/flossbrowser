@@ -1,0 +1,12 @@
+select {
+    border: 1px solid #ccc;
+    width: 170px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: #fafafa url("img/icon-select.png") no-repeat 90% 50%;   
+}
+
+select:focus {
+    outline: none;
+}
+

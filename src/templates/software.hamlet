@@ -8,12 +8,11 @@ $forall Entity projectid project <- projects
     $nothing
         <h1 .notitle>
             Q#{wikidataid}
+    $maybe desc <- projectDescription project
+          <p>#{normalizestr $ desc}
     <ul>
-      $maybe desc <- projectDescription project
-          <li>#{desc}
-      <li> Link:&nbsp;
-          <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata</a>,
-          $maybe link <- (projectLink project)
+      $maybe link <- (projectLink project)
+          <li>
               <a href="#{link}">Webseite
       $with (licenses, codings) <- unzip results
           <li> License:&nbsp;
@@ -26,3 +25,6 @@ $forall Entity projectid project <- projects
                 #{Data.Text.intercalate "; " cl}
               $nothing
                  Unknown!
+      <li> Link:&nbsp;
+          <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata</a>,
+          <a href="https://tools.wmflabs.org/reasonator/?q=Q#{wikidataid}">Wikidata Reasonator</a>

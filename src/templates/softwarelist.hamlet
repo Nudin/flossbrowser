@@ -3,20 +3,24 @@
 <h1>Floss-Browser
 
 ^{chooser os license coding}
-    
+
 <h2> Gefundene Projekte
 $forall Entity projectid project <- results
     <div class="software">
         $with wikidataid <- fromSqlKey projectid
-            $maybe name <- (projectName project)
+            $maybe name <- projectName project
                 <h3>
                     <a href=@{SoftwareR $ unpack name}>#{name}
             $nothing
                 <h3 class="notitle">
                     <a href=@{SoftwareIdR $ fromIntegral $ wikidataid}>Q#{wikidataid}
 
+            <p>
+                $maybe desc <- projectDescription project
+                       #{normalizestr $ desc}
             <ul>
-                <li> Link: 
-                    <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata
-                    $maybe link <- (projectLink project)
+                $maybe link <- (projectLink project)
+                    <li>
                         <a href="#{link}">Webseite
+                <li>
+                    <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata

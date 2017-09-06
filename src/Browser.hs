@@ -17,6 +17,8 @@ import           Text.Julius
 import           Text.Lucius
 import           Yesod                        hiding ((==.))
 
+import qualified Data.Char                    as C
+import qualified Data.Text                    as T
 import           Data.Text
 import           Data.List
 import           Database.Esqueleto
@@ -72,6 +74,11 @@ header = do
           <a href=@{HomeR}>Home
       |]
 
+-- TODO: move to proper place
+normalizestr :: Text -> Text
+normalizestr "" = ""
+normalizestr t  = cons (C.toUpper $ T.head t) (T.tail t)
+
 -- Generate a nice Title for the page
 gentitle :: String -> String -> String -> String
 gentitle o l c = "Flossbrowser: Software" ++
@@ -126,6 +133,7 @@ chooser os license coding = do
     ol <- handlerToWidget $ oslist
     toWidget $(hamletFile "./templates/chooser.hamlet")
     toWidget $(juliusFile "./templates/chooser.julius")
+    toWidget $(luciusFile "./templates/chooser.lucius")
 
 runquery
   :: (YesodPersist site, YesodPersistBackend site ~ SqlBackend) =>
