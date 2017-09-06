@@ -41,47 +41,33 @@ insertsoftwareos _ Nothing = return ()
 
 insertall (Collection l) = do
     mapM_ insertsoftware l
-    zipWithM_ insertsoftwarecoding (qid <$> l) (coding <$> l)
+    zipWithM_ insertsoftwarecoding  (qid <$> l) (coding  <$> l)
     zipWithM_ insertsoftwarelicense (qid <$> l) (license <$> l)
-    zipWithM_ insertsoftwareos (qid <$> l) (os <$> l)
+    zipWithM_ insertsoftwareos      (qid <$> l) (os      <$> l)
 
-insertlicense :: MonadIO m =>
-    License' -> ReaderT SqlBackend m ()
-insertlicense l = repsert (qidtokey $ lqid l) (License $ lname l)
-
-insertlicenses :: MonadIO m =>
-    LicenseList -> ReaderT SqlBackend m ()
+insertlicenses :: MonadIO m => LicenseList -> ReaderT SqlBackend m ()
 insertlicenses (LicenseList l) = mapM_ insertlicense l
+    where insertlicense l = repsert (qidtokey $ lqid l) (License $ lname l)
 
-
-insertcoding :: MonadIO m =>
-    Coding' -> ReaderT SqlBackend m ()
-insertcoding c = repsert (qidtokey $ cqid c) (Coding $ cname c)
-
-insertcodings :: MonadIO m =>
-    CodingList -> ReaderT SqlBackend m ()
+insertcodings :: MonadIO m => CodingList -> ReaderT SqlBackend m ()
 insertcodings (CodingList c) = mapM_ insertcoding c
+    where insertcoding c = repsert (qidtokey $ cqid c) (Coding $ cname c)
 
-
-insertsystem :: MonadIO m =>
-    Os' -> ReaderT SqlBackend m ()
-insertsystem c = repsert (qidtokey $ oqid c) (Os $ oname c)
-
-insertsystems :: MonadIO m =>
-    OsList -> ReaderT SqlBackend m ()
+insertsystems :: MonadIO m => OsList -> ReaderT SqlBackend m ()
 insertsystems (OsList c) = mapM_ insertsystem c
+    where insertsystem c = repsert (qidtokey $ oqid c) (Os $ oname c)
 
 
 initDB :: IO ()
 initDB = runSqlite sqliteDB $ do
     runMigration migrateAll
     manager <- liftIO $ newManager tlsManagerSettings
-    l   <- liftIO $ getResource queryLicense manager
+    l   <- liftIO  $ getResource queryLicense manager
     insertlicenses $ fromResource l
-    c   <- liftIO $ getResource queryCodings manager
-    insertcodings $ fromResource c
-    o   <- liftIO $ getResource queryOs manager
-    insertsystems $ fromResource o
-    col <- liftIO $ getResource query manager
-    insertall $ fromResource col
+    c   <- liftIO  $ getResource queryCodings manager
+    insertcodings  $ fromResource c
+    o   <- liftIO  $ getResource queryOs manager
+    insertsystems  $ fromResource o
+    col <- liftIO  $ getResource query manager
+    insertall      $ fromResource col
     return ()
