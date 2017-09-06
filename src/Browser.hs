@@ -79,7 +79,7 @@ gentitle o l c = "Flossbrowser: Software" ++
         where
           (+++) :: String -> String -> String
           (+++) _ "*" = ""
-          (+++) a b = (++) a b
+          (+++) a  b  = (++) a b
           texts = [" for ", " licenced under ", " written in "]
 
 -- Query to get the list of all licenses
@@ -161,12 +161,11 @@ getHomeR = do
        toWidget $(whamletFile "./templates/softwarelist.hamlet")
        toWidget $(luciusFile "./templates/softwarelist.lucius")
 
--- TODO: Maybe give key instead of qid? 
-softwareWidget qid = do
+softwareWidget key = do
     projects <- handlerToWidget $ runDB
            $ select $ distinct
            $ from $ \p -> do
-                where_ ( p ^. ProjectId ==. val (qidtokey qid) )
+                where_ ( p ^. ProjectId ==. val key )
                 limit 1
                 return p
     results <- handlerToWidget $ runDB
@@ -176,9 +175,9 @@ softwareWidget qid = do
                 on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
                 on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
                 on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
-                where_ ( p ^. ProjectId ==. val (qidtokey qid) )
+                where_ ( p ^. ProjectId ==. val key )
                 return (l, c)
-    let software = "Q" ++ (show qid)
+    let software = "Q" ++ (show $ fromSqlKey key)
     setTitle $ toHtml $ "Flossbrowser: " ++ software
     toWidget $(whamletFile "./templates/software.hamlet")
     toWidget $(luciusFile "./templates/software.lucius")
@@ -188,11 +187,11 @@ getSoftwareR :: String -> Handler Html
 getSoftwareR software = do
     projects <- runDB $ P.selectList [ ProjectName P.==. (Just $ pack software) ]  []
     defaultLayout $ fmap mconcat $ sequence $ -- TODO: is there a more direct way?
-      fmap ( softwareWidget . fromIntegral . fromSqlKey . entityKey ) projects
+      fmap ( softwareWidget . entityKey ) projects
 
 -- Show Details to one specified Software
 getSoftwareIdR :: Int -> Handler Html
-getSoftwareIdR = defaultLayout . softwareWidget
+getSoftwareIdR = defaultLayout . softwareWidget . qidtokey
 
 getFilterN :: String -> String -> String -> Handler Html
 getFilterN os license coding = do
