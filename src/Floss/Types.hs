@@ -29,8 +29,6 @@ data License' = License' {
   lname :: Maybe Text
 } deriving (Show, Generic)
 
-newtype LicenseList = LicenseList [License'] deriving (Show, Generic) 
-
 data Coding' = Coding' {
   cqid  :: !WikidataItemID,
   cname :: Maybe Text
@@ -41,10 +39,11 @@ data Os' = Os' {
   oname :: Maybe Text
 } deriving (Show, Generic)
 
+newtype Collection = Collection [Software] deriving (Show, Generic)
+newtype LicenseList = LicenseList [License'] deriving (Show, Generic) 
 newtype CodingList = CodingList [Coding'] deriving (Show, Generic) 
 newtype OsList = OsList [Os'] deriving (Show, Generic) 
 
-newtype Collection = Collection [Software] deriving (Show, Generic)
 data SPARQLResponse = SPARQLResponse Collection
                     | SPARQLResponseLicenses LicenseList
                     | SPARQLResponseCodings CodingList

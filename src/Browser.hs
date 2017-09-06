@@ -84,31 +84,37 @@ gentitle o l c = "Flossbrowser: Software" ++
 
 -- Query to get the list of all licenses
 -- TODO: Cache results?
-licenselist :: HandlerT Browser IO [Entity License]
-licenselist = runDB
+licenselist :: HandlerT Browser IO [String]
+licenselist = do
+  ll <- runDB
     $ select $ distinct
     $ from $ \(pl `InnerJoin` l) -> do
          on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
          orderBy [ asc (l ^. LicenseName) ]
-         return l
+         return (l ^. LicenseName)
+  return $ catMaybes $ fmap ((fmap unpack) . unValue ) ll
 
 ---- TODO: Cache results?
-oslist :: HandlerT Browser IO [Entity Os]
-oslist = runDB
+oslist :: HandlerT Browser IO [String]
+oslist = do
+  ol <- runDB
     $ select $ distinct
     $ from $ \(po `InnerJoin` o) -> do
          on $ o ^. OsId ==. po ^. ProjectOsFkOsId
          orderBy [ asc (o ^. OsName) ]
-         return o
+         return (o ^. OsName)
+  return $ catMaybes $ fmap ((fmap unpack) . unValue ) ol
 
 ---- TODO: Cache results?
-codinglist :: HandlerT Browser IO [Entity Coding]
-codinglist = runDB
+codinglist :: HandlerT Browser IO [String]
+codinglist = do 
+  cl <- runDB
     $ select $ distinct
     $ from $ \(pc `InnerJoin` c) -> do
          on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
          orderBy [ asc (c ^. CodingName) ]
-         return c
+         return (c ^. CodingName)
+  return $ catMaybes $ fmap ((fmap unpack) . unValue ) cl
 
 -- Chooser, to allow filtering for License, etc.
 -- For now it works via Page-Redirect and the Recource-Handler do the work
