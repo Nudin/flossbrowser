@@ -2,6 +2,10 @@ body {
     margin-left: 2em;
 }
 
+li {
+    margin-bottom: 0.5em;
+}
+
 .notitle {
     color: gray;
 }
