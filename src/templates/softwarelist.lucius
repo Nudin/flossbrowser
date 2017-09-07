@@ -26,3 +26,13 @@ h3 {
     background: #edebde;
     border-radius: 10px;
     }
+
+.logocontainer {
+    float: right;
+    margin-right: 2em;
+    margin-top: 1em;
+}
+.logo {
+    max-width: 100px;
+    max-height: 130px;
+}

@@ -7,6 +7,9 @@
 <h2> Gefundene Projekte
 $forall Entity projectid project <- results
     <div class="software">
+        $maybe pic <- projectLogo project
+            <div .logocontainer>
+                <img .logo src="#{Data.Text.append (http2https pic) "?width=100"}"/>
         $with wikidataid <- fromSqlKey projectid
             $maybe name <- projectName project
                 <h3>
