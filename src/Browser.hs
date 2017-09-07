@@ -79,6 +79,9 @@ normalizestr :: Text -> Text
 normalizestr "" = ""
 normalizestr t  = cons (C.toUpper $ T.head t) (T.tail t)
 
+http2https :: Text -> Text
+http2https = Data.Text.replace "http://" "https://"
+
 -- Generate a nice Title for the page
 gentitle :: String -> String -> String -> String
 gentitle o l c = "Flossbrowser: Software" ++
@@ -242,7 +245,7 @@ main :: IO ()
 main = do
     t <- lookupEnv "PORT"
     let port = fromMaybe 3000 $ toint <$> t
-    runStderrLoggingT $ P.withSqlitePool sqliteDB 10 $
+    runStderrLoggingT $ P.withSqlitePool sqliteDBro 10 $
          \pool -> liftIO $ warp port $ Browser pool
       where
         toint s = read s :: Int

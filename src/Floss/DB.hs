@@ -25,7 +25,10 @@ import Floss.Query
 
 
 sqliteDB :: Text
-sqliteDB = "./test.sql"
+sqliteDB = "file:test.sql"
+
+sqliteDBro :: Text
+sqliteDBro = append sqliteDB "?mode=ro"
 
 -- DB Schema
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
