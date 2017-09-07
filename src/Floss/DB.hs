@@ -12,6 +12,7 @@
 module Floss.DB where
 
 import Data.Text
+import Data.Time
 import Database.Persist
 import Database.Persist.Sqlite
 import Database.Persist.TH
@@ -34,9 +35,11 @@ share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Project
     name Text Maybe
     description Text Maybe
-    link Text Maybe
-    logo Text Maybe
---    img  URL
+    link URL Maybe
+    logo URL Maybe
+    img  URL Maybe
+    version Text Maybe
+    start Day Maybe
     deriving Show
 Os
     name Text Maybe

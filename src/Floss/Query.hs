@@ -29,7 +29,8 @@ url = "https://query.wikidata.org/sparql?format=json&query="
 
 query :: String
 query = [str|
-SELECT DISTINCT ?floss ?description ?name ?language ?version ?website ?license ?os ?logo WHERE {
+SELECT DISTINCT ?floss ?description ?name ?language ?version
+                ?website ?license ?os ?logo ?img ?start WHERE {
   {
    ?floss p:P31/ps:P31/wdt:P279* wd:Q506883.
   } Union {
@@ -51,6 +52,8 @@ SELECT DISTINCT ?floss ?description ?name ?language ?version ?website ?license ?
   OPTIONAL { ?floss wdt:P275 ?license .}
   OPTIONAL { ?floss wdt:P306 ?os .}
   OPTIONAL { ?floss wdt:P154 ?logo .}
+  OPTIONAL { ?floss wdt:P18  ?img .}
+  OPTIONAL { ?floss wdt:P571 ?start .}
 
   OPTIONAL { ?floss rdfs:label ?name filter (lang(?name) = "en") .}
   OPTIONAL { ?floss schema:description ?description filter (lang(?description) = "en") .}

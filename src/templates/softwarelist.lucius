@@ -34,5 +34,5 @@ h3 {
 }
 .logo {
     max-width: 100px;
-    max-height: 130px;
+    max-height: 120px;
 }
