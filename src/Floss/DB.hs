@@ -21,7 +21,6 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 
 import Floss.Types
-import Floss.Query
 
 
 sqliteDB :: Text
@@ -36,7 +35,7 @@ Project
     name Text Maybe
     description Text Maybe
     link Text Maybe
-    logo URL Maybe
+    logo Text Maybe
 --    img  URL
     deriving Show
 Os

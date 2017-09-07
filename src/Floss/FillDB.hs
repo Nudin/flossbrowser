@@ -13,13 +13,13 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 
 import Floss.DB
-import Floss.Types
+import Floss.Parser
 import Floss.Query
 
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 
-insertsoftware = ap (repsert . qidtokey . qid) (liftM4 Project name description website logo)
+insertsoftware = ap (repsert . qidtokey . qid) project
 
 insertsoftwarecoding :: (MonadIO m, PersistStoreWrite backend,
                          BaseBackend backend ~ SqlBackend) =>

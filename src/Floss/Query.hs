@@ -22,7 +22,7 @@ import Network.URI(escapeURIString,isAllowedInURI)
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS()
 
-import Floss.Types
+import Floss.Parser
 
 url :: String
 url = "https://query.wikidata.org/sparql?format=json&query="
