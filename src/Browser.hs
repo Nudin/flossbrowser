@@ -41,9 +41,11 @@ instance Yesod Browser
 mkYesod
   "Browser"
   [parseRoutes|
-    /                          HomeR        GET
-    /software/#String          SoftwareR    GET
+    /                          HomeR         GET
+    /software/#String          SoftwareR     GET
     /softwarebyid/#Int         SoftwareIdR   GET
+
+    /favicon.ico               FaviconR      GET
 
     /bylicense/#String         ByLicenseR    GET
     /bycoding/#String          ByCodingR     GET
@@ -245,6 +247,9 @@ getByLicenseR license = getFilterN "*" license "*"
 -- Get Software my Coding-Name
 getByCodingR :: String -> Handler Html
 getByCodingR coding = getFilterN "*" "*" coding
+
+getFaviconR :: Handler ()
+getFaviconR = sendFile "image/vnd.microsoft.icon" "favicon.ico"
 
 main :: IO ()
 main = do
