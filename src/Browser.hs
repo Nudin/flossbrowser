@@ -144,22 +144,36 @@ runquery
       -> HandlerT site IO [Entity Project]
 runquery os license coding = runDB
     $ select $ distinct
-    $ from $ \(p `InnerJoin` pl `InnerJoin` l `InnerJoin` pc
-              `InnerJoin` c `InnerJoin` o `InnerJoin` po) -> do
-         on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
-         on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
-         on $ p ^. ProjectId ==. po ^. ProjectOsFkProjectId
-         on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
-         on $ c ^. CodingId  ==. pc ^. ProjectCodingFkCodingId
-         on $ o ^. OsId      ==. po ^. ProjectOsFkOsId
+    $ from $ \p -> do
          case os of
-           Just os' -> where_ ( o ^. OsName ==. val (Just (pack os')))
+           Just os' -> do 
+             where_ $ p ^. ProjectId `in_` (
+               subList_select $ distinct $ from $
+                 \(o `InnerJoin` po) -> do
+                   on $ o ^. OsId       ==. po ^. ProjectOsFkOsId
+                   where_ $ o ^. OsName ==. val (Just $ pack os') 
+                   return $ po ^. ProjectOsFkProjectId
+                   )
            Nothing -> return ()
          case license of
-           Just license' -> where_ ( l ^. LicenseName ==. val (Just (pack license')))
+           Just license' -> do 
+             where_ $ p ^. ProjectId `in_` (
+               subList_select $ distinct $ from $
+                 \(l `InnerJoin` pl) -> do
+                   on $ l ^. LicenseId      ==. pl ^. ProjectLicenseFkLicenseId
+                   where_ $ l ^. LicenseName ==. val (Just $ pack license') 
+                   return $ pl ^. ProjectLicenseFkProjectId
+                   )
            Nothing -> return ()
          case coding of
-           Just coding' -> where_ ( c ^. CodingName ==. val (Just (pack coding')))
+           Just coding' -> do 
+             where_ $ p ^. ProjectId `in_` (
+               subList_select $ distinct $ from $
+                 \(c `InnerJoin` pl) -> do
+                   on $ c ^. CodingId      ==. pl ^. ProjectCodingFkCodingId
+                   where_ $ c ^. CodingName ==. val (Just $ pack coding') 
+                   return $ pl ^. ProjectCodingFkProjectId
+                   )
            Nothing -> return ()
          limit 50
          return p
@@ -167,16 +181,7 @@ runquery os license coding = runDB
 
 -- List all Software
 getHomeR :: Handler Html
---getHomeR = getFilterN "*" "*" "*" -- elegant but slow version
-getHomeR = do
-    results <- runDB $ P.selectList []  [P.LimitTo 50]
-    defaultLayout $ do
-       setTitle "Floss-Browser"
-       let os = "*"
-       let coding = "*"
-       let license = "*"
-       toWidget $(whamletFile "./templates/softwarelist.hamlet")
-       toWidget $(luciusFile "./templates/softwarelist.lucius")
+getHomeR = getFilterN "*" "*" "*"
 
 softwareWidget key = do
     projects <- handlerToWidget $ runDB
