@@ -33,7 +33,7 @@ Project
     name Text Maybe
     description Text Maybe
     link Text Maybe
---    logo URL
+    logo URL Maybe
 --    img  URL
     deriving Show
 Os

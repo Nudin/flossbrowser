@@ -3,11 +3,15 @@
 
 $forall Entity projectid project <- projects
   $with wikidataid <- fromSqlKey projectid
+    $maybe pic <- projectLogo project
+        <img .logo src="#{pic}"/>
+
     $maybe title <- projectName project
         <h1>#{title}
     $nothing
         <h1 .notitle>
             Q#{wikidataid}
+
     $maybe desc <- projectDescription project
           <p>#{normalizestr $ desc}
     <ul>

@@ -17,6 +17,7 @@ data Software = Software {
   qid         :: !WikidataItemID,
   name        :: Maybe Text,
   description :: Maybe Text,
+  logo        :: Maybe Text,
   os          :: Maybe WikidataItemID,
   coding      :: Maybe WikidataItemID,
   license     :: Maybe WikidataItemID,
@@ -64,6 +65,7 @@ instance FromJSON Software where
                         return $ urltoid projectiri
                  <*> maybeValue "name" o
                  <*> maybeValue "description" o
+                 <*> maybeValue "logo" o
                  <*> do
                    x <- maybeValue "os" o
                    return $ fmap (urltoid . unpack) x

@@ -19,7 +19,7 @@ import Floss.Query
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 
-insertsoftware = ap (repsert . qidtokey . qid) (liftM3 Project name description website)
+insertsoftware = ap (repsert . qidtokey . qid) (liftM4 Project name description website logo)
 
 insertsoftwarecoding :: (MonadIO m, PersistStoreWrite backend,
                          BaseBackend backend ~ SqlBackend) =>

@@ -27,6 +27,9 @@ function filter() {
     else {
         newurl += coding + "/";
     }
-    console.log(newurl);
-    window.location.href = newurl;
+    oldurl = window.location.pathname.replace(/%2A/g, "*").replace("*/*/*", "") + "/";
+    newurl2 = newurl.replace(/%2A/g, "*").replace("*/*/*", "");
+    if ( newurl2 != oldurl ) {
+        window.location.href = newurl;
+    }
 }
