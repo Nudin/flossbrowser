@@ -1,26 +1,15 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Floss.Types where
 
-import Data.Aeson
-import Data.Aeson.Types
-
 import Data.Text
-import GHC.Generics
-import Control.Monad
-import Control.Applicative
-import qualified Data.Generics as Gen
 
--- TODO think about using Network.URL instead
 type URL = Text
 
--- TODO: Decide type, newtype, data or no new type at all?
---data WikidataItemID = WikidataItemID Int deriving (Show, Eq)
 type WikidataItemID = Int
 
 -- Convert String to WikidataItemID
--- fallback -1 ← should we panic instead?
+-- fallback -1
 strtoid :: String -> WikidataItemID
 strtoid = strtoid_ where
   strtoid_ :: String -> Int

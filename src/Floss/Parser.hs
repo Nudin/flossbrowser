@@ -11,7 +11,6 @@ import Data.Time
 import GHC.Generics
 import Control.Monad
 import Control.Applicative
-import qualified Data.Generics as Gen
 
 import Floss.Types
 import Floss.DB
@@ -35,12 +34,11 @@ data ItemList = ItemList [ItemLabel]
                 | Empty
                 deriving (Show, Generic) 
 
-data SPARQLResponse = SPARQLResponse ItemList
+newtype SPARQLResponse = SPARQLResponse ItemList
                     deriving (Show, Generic)
 
 -- Can't we do this more idiomatic? Or at least prettier?
--- TODO: Move them?
-parseId :: Text -> Object -> Parser (WikidataItemID)
+parseId :: Text -> Object -> Parser WikidataItemID
 parseId field o = do
   result <- o .: field
   val <- result .: "value"
@@ -59,7 +57,7 @@ parseMaybeId field o = do
 parseMaybeDay :: Text -> Object -> Parser (Maybe Day)
 parseMaybeDay field o = do
   result <- parseMaybeText field o
-  return $ (fmap unpack result) >>= parseDay
+  return $ fmap unpack result >>= parseDay
     where
       parseDay :: String -> Maybe Day
       parseDay = parseTimeM True defaultTimeLocale "%FT%TZ"
@@ -67,16 +65,16 @@ parseMaybeDay field o = do
 
 {- Mixed applicative and monad version -}
 instance FromJSON Software where
-    parseJSON (Object o) = do
+    parseJSON (Object o) =
         Software <$> parseId "floss" o
                  <*> ( return Project
-                   <*> parseMaybeText "name" o
-                   <*> parseMaybeText "description" o
-                   <*> parseMaybeText "website" o
-                   <*> parseMaybeText "logo" o
-                   <*> parseMaybeText "img" o
-                   <*> parseMaybeText "version" o
-                   <*> parseMaybeDay "start" o
+                    <*> parseMaybeText "name" o
+                    <*> parseMaybeText "description" o
+                    <*> parseMaybeText "website" o
+                    <*> parseMaybeText "logo" o
+                    <*> parseMaybeText "img" o
+                    <*> parseMaybeText "version" o
+                    <*> parseMaybeDay "start" o
                      )
                  <*> parseMaybeId "os" o
                  <*> parseMaybeId "language" o
@@ -84,23 +82,24 @@ instance FromJSON Software where
     parseJSON _ = mzero
 
 instance FromJSON ItemLabel where
-    parseJSON (Object o) = do
-      (parseIDLabel ItemLabel "license") <|> 
-        (parseIDLabel ItemLabel "language") <|> 
-        (parseIDLabel ItemLabel "os")
+    parseJSON (Object o) =
+      parseIDLabel ItemLabel "license" <|>
+        parseIDLabel ItemLabel "language" <|>
+        parseIDLabel ItemLabel "os"
       where
         parseIDLabel c s =
             c <$> parseId s o
               <*> parseMaybeText (s `append` "Label") o
+    parseJSON _ = mzero
 
 instance FromJSON ItemList where
-  parseJSON (Object o) = 
+  parseJSON (Object o) =
     ItemList <$> o .: "bindings" <|>
       Collection <$> o .: "bindings"
   parseJSON _ = mzero
 
 instance FromJSON SPARQLResponse where
-  parseJSON (Object o) = (SPARQLResponse <$> res o) 
+  parseJSON (Object o) = SPARQLResponse <$> res o
      where
         res :: FromJSON a => Object -> Parser a
         res = flip (.:) "results"
