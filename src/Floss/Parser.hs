@@ -32,12 +32,11 @@ data ItemLabel = ItemLabel {
 data ItemList = ItemList [ItemLabel]
                 | Collection [Software]
                 | Empty
-                deriving (Show, Generic) 
+                deriving (Show, Generic)
 
 newtype SPARQLResponse = SPARQLResponse ItemList
                     deriving (Show, Generic)
 
--- Can't we do this more idiomatic? Or at least prettier?
 parseId :: Text -> Object -> Parser WikidataItemID
 parseId field o = do
   result <- o .: field
@@ -63,7 +62,6 @@ parseMaybeDay field o = do
       parseDay = parseTimeM True defaultTimeLocale "%FT%TZ"
 
 
-{- Mixed applicative and monad version -}
 instance FromJSON Software where
     parseJSON (Object o) =
         Software <$> parseId "floss" o
@@ -74,7 +72,7 @@ instance FromJSON Software where
                     <*> parseMaybeText "logo" o
                     <*> parseMaybeText "img" o
                     <*> parseMaybeText "version" o
-                    <*> parseMaybeDay "start" o
+                    <*> parseMaybeDay  "start" o
                      )
                  <*> parseMaybeId "os" o
                  <*> parseMaybeId "language" o
@@ -83,7 +81,7 @@ instance FromJSON Software where
 
 instance FromJSON ItemLabel where
     parseJSON (Object o) =
-      parseIDLabel ItemLabel "license" <|>
+        parseIDLabel ItemLabel "license"  <|>
         parseIDLabel ItemLabel "language" <|>
         parseIDLabel ItemLabel "os"
       where
