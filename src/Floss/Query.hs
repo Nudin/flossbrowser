@@ -126,12 +126,12 @@ SELECT DISTINCT ?category ?categoryLabel WHERE {
 escapeQuery :: String -> String
 escapeQuery = (url ++) . escapeURIString isAllowedInURI
 
-getResource :: String -> Manager -> IO (ItemList)
-getResource query man = do
-    req <- parseUrl $ escapeQuery query
+getResource :: String -> Manager -> IO ItemList
+getResource queryStr man = do
+    req <- parseRequest $ escapeQuery queryStr
     res <- httpLbs req man
     let body   = responseBody res
         mbList = decode body :: Maybe SPARQLResponse
     case mbList of
         (Just (SPARQLResponse c)) -> return c
-        _                         -> return $ Empty
+        _                         -> return Empty

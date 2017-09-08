@@ -17,9 +17,6 @@ import Database.Persist
 import Database.Persist.Sqlite
 import Database.Persist.TH
 import GHC.Int
-import Control.Monad
-import Control.Monad.IO.Class
-import Control.Monad.Trans.Reader
 
 import Floss.Types
 
