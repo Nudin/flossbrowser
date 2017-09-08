@@ -11,6 +11,7 @@
 
 
 import           Floss.DB
+import Genlists
 
 import           Text.Hamlet
 import           Text.Julius
@@ -29,6 +30,8 @@ import           Data.Foldable                as F
 import           Control.Monad.Logger         (runStderrLoggingT)
 import           Data.Maybe
 import           System.Environment
+import           Language.Haskell.TH
+import    Control.Monad.Trans.Reader
 
 data Browser = Browser ConnectionPool
 
@@ -92,73 +95,17 @@ gentitle o l c = "Flossbrowser: Software" ++
           (+++) a  b  = (++) a b
           texts = [" for ", " licenced under ", " written in "]
 
--- Query to get the list of all licenses
--- TODO: unify
--- TODO: Cache results?
-licenselist :: HandlerT Browser IO [String]
-licenselist = do
-  ll <- runDB
-    $ select $ distinct
-    $ from $ \(pl `InnerJoin` l) -> do
-         on $ l ^. LicenseId ==. pl ^. ProjectLicenseLId
-         orderBy [ asc (l ^. LicenseName) ]
-         return (l ^. LicenseName)
-  return $ catMaybes $ fmap (fmap unpack . unValue ) ll
-
----- TODO: Cache results?
-oslist :: HandlerT Browser IO [String]
-oslist = do
-  ol <- runDB
-    $ select $ distinct
-    $ from $ \(po `InnerJoin` o) -> do
-         on $ o ^. OsId ==. po ^. ProjectOsOId
-         orderBy [ asc (o ^. OsName) ]
-         return (o ^. OsName)
-  return $ catMaybes $ fmap (fmap unpack . unValue ) ol
-
----- TODO: Cache results?
-codinglist :: HandlerT Browser IO [String]
-codinglist = do 
-  cl <- runDB
-    $ select $ distinct
-    $ from $ \(pc `InnerJoin` c) -> do
-         on $ c ^. CodingId ==. pc ^. ProjectCodingCId
-         orderBy [ asc (c ^. CodingName) ]
-         return (c ^. CodingName)
-  return $ catMaybes $ fmap (fmap unpack . unValue ) cl
-
----- TODO: Cache results?
-guilist :: HandlerT Browser IO [String]
-guilist = do 
-  cl <- runDB
-    $ select $ distinct
-    $ from $ \(pc `InnerJoin` c) -> do
-         on $ c ^. GuiId ==. pc ^. ProjectGuiGId
-         orderBy [ asc (c ^. GuiName) ]
-         return (c ^. GuiName)
-  return $ catMaybes $ fmap ((fmap unpack) . unValue ) cl
-
----- TODO: Cache results?
-catlist :: HandlerT Browser IO [String]
-catlist = do 
-  cl <- runDB
-    $ select $ distinct
-    $ from $ \(pc `InnerJoin` c) -> do
-         on $ c ^. CatId ==. pc ^. ProjectCatCId
-         orderBy [ asc (c ^. CatName) ]
-         return (c ^. CatName)
-  return $ catMaybes $ fmap ((fmap unpack) . unValue ) cl
 
 -- Chooser, to allow filtering for License, etc.
 -- For now it works via Page-Redirect and the Recource-Handler do the work
 -- The list of what options are available is currently given as an argument
 chooser :: String -> String -> String -> String -> String -> Widget
 chooser cat os license coding gui = do
-    ll <- handlerToWidget licenselist
-    cl <- handlerToWidget codinglist
-    ol <- handlerToWidget oslist
-    gl <- handlerToWidget guilist
-    tl <- handlerToWidget catlist
+    ll <- handlerToWidget $(genlist "License")
+    cl <- handlerToWidget $(genlist "Coding")
+    ol <- handlerToWidget $(genlist "Os")
+    gl <- handlerToWidget $(genlist "Gui")
+    tl <- handlerToWidget $(genlist "Cat")
     toWidget $(hamletFile "./templates/chooser.hamlet")
     toWidget $(juliusFile "./templates/chooser.julius")
     toWidget $(luciusFile "./templates/chooser.lucius")
