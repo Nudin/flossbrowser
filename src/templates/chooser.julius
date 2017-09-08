@@ -6,7 +6,15 @@ function filter() {
     license = encode(document.getElementById("licensechooser").value);
     coding = encode(document.getElementById("codingchooser").value);
     os = encode(document.getElementById("oschooser").value);
+    cat = encode(document.getElementById("catchooser").value);
+    gui = encode(document.getElementById("guichooser").value);
     newurl="/";
+    if(cat === "-- all --") {
+        newurl += "*/";
+    }
+    else {
+        newurl += cat + "/"
+    }
     if(os === "-- all --") {
         newurl += "*/";
     }
@@ -27,8 +35,15 @@ function filter() {
     else {
         newurl += coding + "/";
     }
-    oldurl = window.location.pathname.replace(/%2A/g, "*").replace("*/*/*", "") + "/";
-    newurl2 = newurl.replace(/%2A/g, "*").replace("*/*/*", "");
+
+    if(gui === "-- all --") {
+        newurl += "*/";
+    }
+    else {
+        newurl += gui + "/";
+    }
+    oldurl = window.location.pathname.replace(/%2A/g, "*").replace("*/*/*/*/*", "") + "/";
+    newurl2 = newurl.replace(/%2A/g, "*").replace("*/*/*/*/*", "");
     if ( newurl2 != oldurl ) {
         window.location.href = newurl;
     }

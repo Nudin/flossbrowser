@@ -15,7 +15,7 @@ import           Floss.DB
 import           Text.Hamlet
 import           Text.Julius
 import           Text.Lucius
-import           Yesod                        hiding ((==.),check)
+import           Yesod                        hiding ((==.))
 
 import qualified Data.Char                    as C
 import qualified Data.Text                    as T
@@ -30,7 +30,7 @@ import           Control.Monad.Logger         (runStderrLoggingT)
 import           Data.Maybe
 import           System.Environment
 
-newtype Browser = Browser ConnectionPool
+data Browser = Browser ConnectionPool
 
 instance Yesod Browser
 
@@ -46,9 +46,11 @@ mkYesod
     /bylicense/#String         ByLicenseR    GET
     /bycoding/#String          ByCodingR     GET
 
-    !/#String                   Filter1R     GET
-    !/#String/#String           Filter2R     GET
-    !/#String/#String/#String   Filter3R     GET
+    !/#String                                   Filter1R     GET
+    !/#String/#String                           Filter2R     GET
+    !/#String/#String/#String                   Filter3R     GET
+    !/#String/#String/#String/#String           Filter4R     GET
+    !/#String/#String/#String/#String/#String   Filter5R     GET
 |]
 
 instance YesodPersist Browser where
@@ -91,6 +93,7 @@ gentitle o l c = "Flossbrowser: Software" ++
           texts = [" for ", " licenced under ", " written in "]
 
 -- Query to get the list of all licenses
+-- TODO: unify
 -- TODO: Cache results?
 licenselist :: HandlerT Browser IO [String]
 licenselist = do
@@ -124,6 +127,28 @@ codinglist = do
          return (c ^. CodingName)
   return $ catMaybes $ fmap (fmap unpack . unValue ) cl
 
+---- TODO: Cache results?
+guilist :: HandlerT Browser IO [String]
+guilist = do 
+  cl <- runDB
+    $ select $ distinct
+    $ from $ \(pc `InnerJoin` c) -> do
+         on $ c ^. GuiId ==. pc ^. ProjectGuiGId
+         orderBy [ asc (c ^. GuiName) ]
+         return (c ^. GuiName)
+  return $ catMaybes $ fmap ((fmap unpack) . unValue ) cl
+
+---- TODO: Cache results?
+catlist :: HandlerT Browser IO [String]
+catlist = do 
+  cl <- runDB
+    $ select $ distinct
+    $ from $ \(pc `InnerJoin` c) -> do
+         on $ c ^. CatId ==. pc ^. ProjectCatCId
+         orderBy [ asc (c ^. CatName) ]
+         return (c ^. CatName)
+  return $ catMaybes $ fmap ((fmap unpack) . unValue ) cl
+
 -- Chooser, to allow filtering for License, etc.
 -- For now it works via Page-Redirect and the Recource-Handler do the work
 -- The list of what options are available is currently given as an argument
@@ -132,15 +157,17 @@ chooser os license coding = do
     ll <- handlerToWidget licenselist
     cl <- handlerToWidget codinglist
     ol <- handlerToWidget oslist
+    gl <- handlerToWidget guilist
+    tl <- handlerToWidget catlist
     toWidget $(hamletFile "./templates/chooser.hamlet")
     toWidget $(juliusFile "./templates/chooser.julius")
     toWidget $(luciusFile "./templates/chooser.lucius")
 
 runquery
   :: (YesodPersist site, YesodPersistBackend site ~ SqlBackend) =>
-     Maybe String -> Maybe String -> Maybe String
+    Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String
       -> HandlerT site IO [Entity Project]
-runquery os license coding = runDB
+runquery cat os license coding gui = runDB
     $ select $ distinct
     $ from $ \p -> do
          case os of
@@ -173,13 +200,33 @@ runquery os license coding = runDB
                    return $ pl ^. ProjectCodingPId
                    )
            Nothing -> return ()
+         case gui of
+           Just gui' ->
+             where_ $ p ^. ProjectId `in_`
+               subList_select ( distinct $ from $
+                 \(c `InnerJoin` pl) -> do
+                   on $ c ^. GuiId      ==. pl ^. ProjectGuiGId
+                   where_ $ c ^. GuiName ==. val (Just $ pack gui') 
+                   return $ pl ^. ProjectGuiPId
+                   )
+           Nothing -> return ()
+         case cat of
+           Just cat' ->
+             where_ $ p ^. ProjectId `in_`
+               subList_select ( distinct $ from $
+                 \(c `InnerJoin` pl) -> do
+                   on $ c ^. CatId      ==. pl ^. ProjectCatCId
+                   where_ $ c ^. CatName ==. val (Just $ pack cat') 
+                   return $ pl ^. ProjectCatPId
+                   )
+           Nothing -> return ()
          limit 50
          return p
 
 
 -- List all Software
 getHomeR :: Handler Html
-getHomeR = getFilterN "*" "*" "*"
+getHomeR = getFilterN "*" "*" "*" "*" "*"
 
 softwareWidget :: Key Project -> WidgetT Browser IO ()
 softwareWidget key = do
@@ -213,9 +260,9 @@ getSoftwareR software = do
 getSoftwareIdR :: Int -> Handler Html
 getSoftwareIdR = defaultLayout . softwareWidget . qidtokey
 
-getFilterN :: String -> String -> String -> Handler Html
-getFilterN os license coding = do
-    results <- runquery (check os) (check license) (check coding)
+getFilterN :: String -> String -> String -> String -> String -> Handler Html
+getFilterN cat os license coding gui = do
+    results <- runquery (check cat) (check os) (check license) (check coding) (check gui)
     defaultLayout $ do
       setTitle $ toHtml $ gentitle os license coding
       toWidget $(whamletFile "./templates/softwarelist.hamlet")
@@ -224,25 +271,37 @@ getFilterN os license coding = do
       check "*" = Nothing
       check s   = Just s
 
--- Get Software by OS
+-- Get Software by Cat
 getFilter1R :: String -> Handler Html
-getFilter1R os = getFilterN os "*" "*"
+getFilter1R cat = getFilterN cat "*" "*" "*" "*"
 
--- Get Software by OS & License
+-- Get Software by Cat & OS
 getFilter2R :: String -> String -> Handler Html
-getFilter2R os license = getFilterN os license "*"
+getFilter2R cat os = getFilterN cat os "*" "*" "*"
+
+-- Get Software by Cat, OS & License
+getFilter3R :: String -> String -> String -> Handler Html
+getFilter3R cat os license = getFilterN cat os license "*" "*"
+
+-- Get Software by Cat, OS & License
+getFilter4R :: String -> String -> String -> String -> Handler Html
+getFilter4R cat os license coding = getFilterN cat os license coding "*"
 
 -- Get Software by OS, License & Coding
-getFilter3R :: String -> String -> String -> Handler Html
-getFilter3R = getFilterN
+getFilter5R :: String -> String -> String -> String -> String -> Handler Html
+getFilter5R = getFilterN
 
 -- Get Software by License-Name
 getByLicenseR :: String -> Handler Html
-getByLicenseR license = getFilterN "*" license "*"
+getByLicenseR license = getFilterN "*" "*" license "*" "*"
 
 -- Get Software my Coding-Name
 getByCodingR :: String -> Handler Html
-getByCodingR = getFilterN "*" "*"
+getByCodingR coding = getFilterN "*" "*" "*" coding "*" 
+
+-- Get Software my Gui-Name
+getByGuiR :: String -> Handler Html
+getByGuiR = getFilterN "*" "*" "*" "*" 
 
 getFaviconR :: Handler ()
 getFaviconR = sendFile "image/vnd.microsoft.icon" "favicon.ico"
