@@ -32,11 +32,14 @@ insertsoftware' _     _   Nothing    = return ()
 insertsoftware' const qid (Just oid) = insert_ $ const (qidtokey qid) (qidtokey oid)
 
 insertall Empty          = return ()
+insertall (ItemList l)   = return () -- should not occur
 insertall (Collection l) = do
     mapM_ insertsoftware l
     zipWithM_ (insertsoftware' ProjectCoding)  (qid <$> l) (coding  <$> l)
     zipWithM_ (insertsoftware' ProjectLicense) (qid <$> l) (license <$> l)
     zipWithM_ (insertsoftware' ProjectOs)      (qid <$> l) (os      <$> l)
+    zipWithM_ (insertsoftware' ProjectGui)     (qid <$> l) (gui     <$> l)
+    zipWithM_ (insertsoftware' ProjectCat)     (qid <$> l) (cat     <$> l)
 
 insertItemLabelList
   :: (PersistEntityBackend record ~ BaseBackend backend,
@@ -54,6 +57,8 @@ initDB = runSqlite sqliteDB $ do
     insertLabels manager queryLicense License
     insertLabels manager queryCodings Coding
     insertLabels manager queryOs      Os
+    insertLabels manager queryGui     Gui
+    insertLabels manager queryCat     Cat
 
     col <- liftIO  $ getResource query manager
     insertall col
