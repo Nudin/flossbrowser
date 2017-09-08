@@ -117,56 +117,11 @@ runquery
 runquery cat os license coding gui = runDB
     $ select $ distinct
     $ from $ \p -> do
-         case os of
-           Just os' ->
-             where_ $ p ^. ProjectId `in_`
-               subList_select ( distinct $ from $
-                 \(o `InnerJoin` po) -> do
-                   on $ o ^. OsId       ==. po ^. ProjectOsOId
-                   where_ $ o ^. OsName ==. val (Just $ pack os') 
-                   return $ po ^. ProjectOsPId
-                   )
-           Nothing -> return ()
-         case license of
-           Just license' ->
-             where_ $ p ^. ProjectId `in_`
-               subList_select ( distinct $ from $
-                 \(l `InnerJoin` pl) -> do
-                   on $ l ^. LicenseId      ==. pl ^. ProjectLicenseLId
-                   where_ $ l ^. LicenseName ==. val (Just $ pack license') 
-                   return $ pl ^. ProjectLicensePId
-                   )
-           Nothing -> return ()
-         case coding of
-           Just coding' ->
-             where_ $ p ^. ProjectId `in_`
-               subList_select ( distinct $ from $
-                 \(c `InnerJoin` pl) -> do
-                   on $ c ^. CodingId      ==. pl ^. ProjectCodingCId
-                   where_ $ c ^. CodingName ==. val (Just $ pack coding') 
-                   return $ pl ^. ProjectCodingPId
-                   )
-           Nothing -> return ()
-         case gui of
-           Just gui' ->
-             where_ $ p ^. ProjectId `in_`
-               subList_select ( distinct $ from $
-                 \(c `InnerJoin` pl) -> do
-                   on $ c ^. GuiId      ==. pl ^. ProjectGuiGId
-                   where_ $ c ^. GuiName ==. val (Just $ pack gui') 
-                   return $ pl ^. ProjectGuiPId
-                   )
-           Nothing -> return ()
-         case cat of
-           Just cat' ->
-             where_ $ p ^. ProjectId `in_`
-               subList_select ( distinct $ from $
-                 \(c `InnerJoin` pl) -> do
-                   on $ c ^. CatId      ==. pl ^. ProjectCatCId
-                   where_ $ c ^. CatName ==. val (Just $ pack cat') 
-                   return $ pl ^. ProjectCatPId
-                   )
-           Nothing -> return ()
+         $(gencheck "os"      "Os")
+         $(gencheck "cat"     "Cat")
+         $(gencheck "license" "License")
+         $(gencheck "coding"  "Coding")
+         $(gencheck "gui"     "Gui")
          limit 50
          return p
 
