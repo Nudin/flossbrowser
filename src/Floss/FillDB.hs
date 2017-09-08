@@ -51,13 +51,15 @@ initDB :: IO ()
 initDB = runSqlite sqliteDB $ do
     runMigration migrateAll
     manager <- liftIO $ newManager tlsManagerSettings
-    l   <- liftIO  $ getResource queryLicense manager
-    insertItemLabelList License l
-    c   <- liftIO  $ getResource queryCodings manager
-    insertItemLabelList Coding c
-    o   <- liftIO  $ getResource queryOs manager
-    insertItemLabelList Os o
+    insertLabels manager queryLicense License
+    insertLabels manager queryCodings Coding
+    insertLabels manager queryOs      Os
 
     col <- liftIO  $ getResource query manager
     insertall col
     return ()
+      where
+        insertLabels manager query const = do
+          l <- liftIO $ getResource query manager
+          insertItemLabelList const l
+
