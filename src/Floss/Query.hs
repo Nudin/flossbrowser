@@ -8,6 +8,7 @@
 
 module Floss.Query(
     getResource,
+    getResource',
     query,
     queryLicense,
     queryCodings,
@@ -83,10 +84,22 @@ SELECT DISTINCT ?os ?osLabel WHERE {
 escapeQuery :: String -> String
 escapeQuery = (url ++) . escapeURIString isAllowedInURI
 
-getResource :: FromSPARQL a => String -> Manager -> IO (FlossResource a)
+getResource :: String -> Manager -> IO (ItemList)
 getResource query man = do
     req <- parseUrl $ escapeQuery query
     res <- httpLbs req man
     let body   = responseBody res
         mbList = decode body :: Maybe SPARQLResponse
-    return $ fromSPARQLResponse mbList
+    case mbList of
+        (Just (SPARQLResponseItem c)) -> return c
+        _                             -> return $ ItemList []
+
+getResource' :: String -> Manager -> IO (Collection)
+getResource' query man = do
+    req <- parseUrl $ escapeQuery query
+    res <- httpLbs req man
+    let body   = responseBody res
+        mbList = decode body :: Maybe SPARQLResponse
+    case mbList of
+        (Just (SPARQLResponse c)) -> return c
+        _                         -> return $ Collection []

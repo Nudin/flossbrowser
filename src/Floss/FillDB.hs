@@ -6,6 +6,7 @@
 
 module Floss.FillDB where
 
+import Data.Text
 import Database.Persist
 import Database.Persist.Sqlite
 import Control.Monad
@@ -45,17 +46,12 @@ insertall (Collection l) = do
     zipWithM_ insertsoftwarelicense (qid <$> l) (license <$> l)
     zipWithM_ insertsoftwareos      (qid <$> l) (os      <$> l)
 
-insertlicenses :: MonadIO m => LicenseList -> ReaderT SqlBackend m ()
-insertlicenses (LicenseList l) = mapM_ insertlicense l
-    where insertlicense l = repsert (qidtokey $ lqid l) (License $ lname l)
-
-insertcodings :: MonadIO m => CodingList -> ReaderT SqlBackend m ()
-insertcodings (CodingList c) = mapM_ insertcoding c
-    where insertcoding c = repsert (qidtokey $ cqid c) (Coding $ cname c)
-
-insertsystems :: MonadIO m => OsList -> ReaderT SqlBackend m ()
-insertsystems (OsList c) = mapM_ insertsystem c
-    where insertsystem c = repsert (qidtokey $ oqid c) (Os $ oname c)
+insertItemLabelList
+  :: (PersistEntityBackend record ~ BaseBackend backend,
+      PersistStoreWrite backend, MonadIO m, ToBackendKey SqlBackend record) =>
+     (Maybe Text -> record) -> ItemList -> ReaderT backend m ()
+insertItemLabelList const (ItemList l) = mapM_ insertitemlabel l
+    where insertitemlabel i = repsert (qidtokey $ iqid i) (const $ iname i)
 
 
 initDB :: IO ()
@@ -63,11 +59,12 @@ initDB = runSqlite sqliteDB $ do
     runMigration migrateAll
     manager <- liftIO $ newManager tlsManagerSettings
     l   <- liftIO  $ getResource queryLicense manager
-    insertlicenses $ fromResource l
+    insertItemLabelList License l
     c   <- liftIO  $ getResource queryCodings manager
-    insertcodings  $ fromResource c
+    insertItemLabelList Coding c
     o   <- liftIO  $ getResource queryOs manager
-    insertsystems  $ fromResource o
-    col <- liftIO  $ getResource query manager
-    insertall      $ fromResource col
+    insertItemLabelList Os o
+
+    col <- liftIO  $ getResource' query manager
+    insertall col
     return ()

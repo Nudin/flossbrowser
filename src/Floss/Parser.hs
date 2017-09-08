@@ -25,30 +25,16 @@ data Software = Software {
   license     :: Maybe WikidataItemID
   } deriving (Show, Generic)
 
-data License' = License' {
-  lqid  :: !WikidataItemID,
-  lname :: Maybe Text
-} deriving (Show, Generic)
-
-data Coding' = Coding' {
-  cqid  :: !WikidataItemID,
-  cname :: Maybe Text
-} deriving (Show, Generic)
-
-data Os' = Os' {
-  oqid  :: !WikidataItemID,
-  oname :: Maybe Text
+data ItemLabel = ItemLabel {
+  iqid  :: !WikidataItemID,
+  iname :: Maybe Text
 } deriving (Show, Generic)
 
 newtype Collection = Collection [Software] deriving (Show, Generic)
-newtype LicenseList = LicenseList [License'] deriving (Show, Generic) 
-newtype CodingList = CodingList [Coding'] deriving (Show, Generic) 
-newtype OsList = OsList [Os'] deriving (Show, Generic) 
+newtype ItemList = ItemList [ItemLabel] deriving (Show, Generic) 
 
 data SPARQLResponse = SPARQLResponse Collection
-                    | SPARQLResponseLicenses LicenseList
-                    | SPARQLResponseCodings CodingList
-                    | SPARQLResponseOs OsList
+                    | SPARQLResponseItem ItemList
                     deriving (Show, Generic)
 
 -- Can't we do this more idiomatic? Or at least prettier?
@@ -101,25 +87,14 @@ instance FromJSON Software where
                  <*> parseMaybeId "license" o
     parseJSON _ = mzero
 
-instance FromJSON License' where
-    parseJSON (Object o) = test License' "license" o
+instance FromJSON ItemLabel where
+    parseJSON (Object o) = do
+      (test ItemLabel "license" o) <|> 
+        (test ItemLabel "language" o) <|> 
+        (test ItemLabel "os" o)
 
-instance FromJSON LicenseList where
-  parseJSON (Object o) = LicenseList <$> o .: "bindings"
-  parseJSON _ = mzero
-
-instance FromJSON Os' where
-    parseJSON (Object o) = test Os' "os" o
-
-instance FromJSON Coding' where
-    parseJSON (Object o) = test Coding' "language" o
-
-instance FromJSON OsList where
-  parseJSON (Object o) = OsList <$> o .: "bindings"
-  parseJSON _ = mzero
-
-instance FromJSON CodingList where
-  parseJSON (Object o) = CodingList <$> o .: "bindings"
+instance FromJSON ItemList where
+  parseJSON (Object o) = ItemList <$> o .: "bindings"
   parseJSON _ = mzero
 
 instance FromJSON Collection where
@@ -129,10 +104,8 @@ instance FromJSON Collection where
 instance FromJSON SPARQLResponse where
   parseJSON (Object o) =
     (SPARQLResponse <$> res o) <|>
-      (SPARQLResponseOs <$> res o) <|>
-      (SPARQLResponseLicenses <$> res o) <|>
-      (SPARQLResponseCodings <$> res o)
-      where
+      (SPARQLResponseItem <$> res o)
+     where
         res :: FromJSON a => Object -> Parser a
         res = flip (.:) "results"
   parseJSON _ = mzero
@@ -140,31 +113,4 @@ instance FromJSON SPARQLResponse where
 
 data Empty = Empty
 newtype FlossResource a = FlossResource a
-
-class FlossSource a where
-    asResource :: a -> FlossResource a
-    asResource = FlossResource
-    fromResource :: FlossResource a -> a
-    fromResource (FlossResource r) = r
-
-instance FlossSource Collection
-instance FlossSource LicenseList
-instance FlossSource CodingList
-instance FlossSource OsList
-instance FlossSource Empty
-
-
-class FlossSource a => FromSPARQL a where
-    fromSPARQLResponse :: Maybe SPARQLResponse -> FlossResource a
-
-instance FromSPARQL Collection where
-    fromSPARQLResponse (Just (SPARQLResponse c@(Collection _))) = asResource c
-instance FromSPARQL LicenseList where
-    fromSPARQLResponse (Just (SPARQLResponseLicenses c@(LicenseList _))) = asResource c
-instance FromSPARQL CodingList where
-    fromSPARQLResponse (Just (SPARQLResponseCodings c@(CodingList _))) = asResource c
-instance FromSPARQL OsList where
-    fromSPARQLResponse (Just (SPARQLResponseOs c@(OsList _))) = asResource c
-instance FromSPARQL Empty where
-    fromSPARQLResponse Nothing = asResource Empty
 
