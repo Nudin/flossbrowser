@@ -15,7 +15,7 @@ import           Floss.DB
 import           Text.Hamlet
 import           Text.Julius
 import           Text.Lucius
-import           Yesod                        hiding ((==.))
+import           Yesod                        hiding ((==.),check)
 
 import qualified Data.Char                    as C
 import qualified Data.Text                    as T
@@ -24,17 +24,13 @@ import           Data.List
 import           Database.Esqueleto
 import qualified Database.Persist             as P
 import qualified Database.Persist.Sqlite      as P
-import           Database.Persist.TH
 
 import           Data.Foldable                as F
-import           Data.Monoid
-import           Control.Monad
 import           Control.Monad.Logger         (runStderrLoggingT)
-import           Control.Monad.Trans.Resource (runResourceT)
 import           Data.Maybe
 import           System.Environment
 
-data Browser = Browser ConnectionPool
+newtype Browser = Browser ConnectionPool
 
 instance Yesod Browser
 
@@ -104,7 +100,7 @@ licenselist = do
          on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
          orderBy [ asc (l ^. LicenseName) ]
          return (l ^. LicenseName)
-  return $ catMaybes $ fmap ((fmap unpack) . unValue ) ll
+  return $ catMaybes $ fmap (fmap unpack . unValue ) ll
 
 ---- TODO: Cache results?
 oslist :: HandlerT Browser IO [String]
@@ -115,7 +111,7 @@ oslist = do
          on $ o ^. OsId ==. po ^. ProjectOsFkOsId
          orderBy [ asc (o ^. OsName) ]
          return (o ^. OsName)
-  return $ catMaybes $ fmap ((fmap unpack) . unValue ) ol
+  return $ catMaybes $ fmap (fmap unpack . unValue ) ol
 
 ---- TODO: Cache results?
 codinglist :: HandlerT Browser IO [String]
@@ -126,16 +122,16 @@ codinglist = do
          on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
          orderBy [ asc (c ^. CodingName) ]
          return (c ^. CodingName)
-  return $ catMaybes $ fmap ((fmap unpack) . unValue ) cl
+  return $ catMaybes $ fmap (fmap unpack . unValue ) cl
 
 -- Chooser, to allow filtering for License, etc.
 -- For now it works via Page-Redirect and the Recource-Handler do the work
 -- The list of what options are available is currently given as an argument
 chooser :: String -> String -> String -> Widget
 chooser os license coding = do
-    ll <- handlerToWidget $ licenselist
-    cl <- handlerToWidget $ codinglist
-    ol <- handlerToWidget $ oslist
+    ll <- handlerToWidget licenselist
+    cl <- handlerToWidget codinglist
+    ol <- handlerToWidget oslist
     toWidget $(hamletFile "./templates/chooser.hamlet")
     toWidget $(juliusFile "./templates/chooser.julius")
     toWidget $(luciusFile "./templates/chooser.lucius")
@@ -148,9 +144,9 @@ runquery os license coding = runDB
     $ select $ distinct
     $ from $ \p -> do
          case os of
-           Just os' -> do 
-             where_ $ p ^. ProjectId `in_` (
-               subList_select $ distinct $ from $
+           Just os' ->
+             where_ $ p ^. ProjectId `in_`
+               subList_select ( distinct $ from $
                  \(o `InnerJoin` po) -> do
                    on $ o ^. OsId       ==. po ^. ProjectOsFkOsId
                    where_ $ o ^. OsName ==. val (Just $ pack os') 
@@ -158,9 +154,9 @@ runquery os license coding = runDB
                    )
            Nothing -> return ()
          case license of
-           Just license' -> do 
-             where_ $ p ^. ProjectId `in_` (
-               subList_select $ distinct $ from $
+           Just license' ->
+             where_ $ p ^. ProjectId `in_`
+               subList_select ( distinct $ from $
                  \(l `InnerJoin` pl) -> do
                    on $ l ^. LicenseId      ==. pl ^. ProjectLicenseFkLicenseId
                    where_ $ l ^. LicenseName ==. val (Just $ pack license') 
@@ -168,9 +164,9 @@ runquery os license coding = runDB
                    )
            Nothing -> return ()
          case coding of
-           Just coding' -> do 
-             where_ $ p ^. ProjectId `in_` (
-               subList_select $ distinct $ from $
+           Just coding' ->
+             where_ $ p ^. ProjectId `in_`
+               subList_select ( distinct $ from $
                  \(c `InnerJoin` pl) -> do
                    on $ c ^. CodingId      ==. pl ^. ProjectCodingFkCodingId
                    where_ $ c ^. CodingName ==. val (Just $ pack coding') 
@@ -185,6 +181,7 @@ runquery os license coding = runDB
 getHomeR :: Handler Html
 getHomeR = getFilterN "*" "*" "*"
 
+softwareWidget :: Key Project -> WidgetT Browser IO ()
 softwareWidget key = do
     projects <- handlerToWidget $ runDB
            $ select $ distinct
@@ -201,7 +198,7 @@ softwareWidget key = do
                 on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
                 where_ ( p ^. ProjectId ==. val key )
                 return (l, c)
-    let software = "Q" ++ (show $ fromSqlKey key)
+    let software = "Q" ++ show (fromSqlKey key)
     setTitle $ toHtml $ "Flossbrowser: " ++ software
     toWidget $(whamletFile "./templates/software.hamlet")
     toWidget $(luciusFile "./templates/software.lucius")
@@ -210,8 +207,7 @@ softwareWidget key = do
 getSoftwareR :: String -> Handler Html
 getSoftwareR software = do
     projects <- runDB $ P.selectList [ ProjectName P.==. (Just $ pack software) ]  []
-    defaultLayout $ fmap mconcat $ sequence $ -- TODO: is there a more direct way?
-      fmap ( softwareWidget . entityKey ) projects
+    defaultLayout $ mconcat <$> traverse ( softwareWidget . entityKey ) projects
 
 -- Show Details to one specified Software
 getSoftwareIdR :: Int -> Handler Html
@@ -246,7 +242,7 @@ getByLicenseR license = getFilterN "*" license "*"
 
 -- Get Software my Coding-Name
 getByCodingR :: String -> Handler Html
-getByCodingR coding = getFilterN "*" "*" coding
+getByCodingR = getFilterN "*" "*"
 
 getFaviconR :: Handler ()
 getFaviconR = sendFile "image/vnd.microsoft.icon" "favicon.ico"
