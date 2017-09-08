@@ -22,29 +22,20 @@ import Network.HTTP.Client.TLS
 
 insertsoftware = ap (repsert . qidtokey . qid) project
 
-insertsoftwarecoding :: (MonadIO m, PersistStoreWrite backend,
-                         BaseBackend backend ~ SqlBackend) =>
-                         Int -> Maybe Int -> ReaderT backend m ()
-insertsoftwarecoding qid (Just cid) = insert_ $ ProjectCoding (qidtokey qid) (qidtokey cid)
-insertsoftwarecoding _ Nothing = return ()
-
-insertsoftwarelicense :: (MonadIO m, PersistStoreWrite backend,
-                         BaseBackend backend ~ SqlBackend) =>
-                         Int -> Maybe Int -> ReaderT backend m ()
-insertsoftwarelicense qid (Just lid) = insert_ $ ProjectLicense (qidtokey qid) (qidtokey lid)
-insertsoftwarelicense _ Nothing = return ()
-
-insertsoftwareos :: (MonadIO m, PersistStoreWrite backend,
-                         BaseBackend backend ~ SqlBackend) =>
-                         Int -> Maybe Int -> ReaderT backend m ()
-insertsoftwareos qid (Just oid) = insert_ $ ProjectOs (qidtokey qid) (qidtokey oid)
-insertsoftwareos _ Nothing = return ()
+insertsoftware'
+  :: (PersistEntityBackend record ~ BaseBackend backend,
+      PersistStoreWrite backend, MonadIO m,
+      ToBackendKey SqlBackend record2, ToBackendKey SqlBackend record1,
+      Integral a, Integral b, PersistEntity record) =>
+          (Key record2 -> Key record1 -> record) -> a -> Maybe b -> ReaderT backend m ()
+insertsoftware' const qid (Just oid) = insert_ $ const (qidtokey qid) (qidtokey oid)
+insertsoftware' _ _ Nothing = return ()
 
 insertall (Collection l) = do
     mapM_ insertsoftware l
-    zipWithM_ insertsoftwarecoding  (qid <$> l) (coding  <$> l)
-    zipWithM_ insertsoftwarelicense (qid <$> l) (license <$> l)
-    zipWithM_ insertsoftwareos      (qid <$> l) (os      <$> l)
+    zipWithM_ (insertsoftware' ProjectCoding)  (qid <$> l) (coding  <$> l)
+    zipWithM_ (insertsoftware' ProjectLicense) (qid <$> l) (license <$> l)
+    zipWithM_ (insertsoftware' ProjectOs)      (qid <$> l) (os      <$> l)
 insertall Empty = return ()
 
 insertItemLabelList
