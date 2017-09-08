@@ -97,7 +97,7 @@ licenselist = do
   ll <- runDB
     $ select $ distinct
     $ from $ \(pl `InnerJoin` l) -> do
-         on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
+         on $ l ^. LicenseId ==. pl ^. ProjectLicenseLId
          orderBy [ asc (l ^. LicenseName) ]
          return (l ^. LicenseName)
   return $ catMaybes $ fmap (fmap unpack . unValue ) ll
@@ -108,7 +108,7 @@ oslist = do
   ol <- runDB
     $ select $ distinct
     $ from $ \(po `InnerJoin` o) -> do
-         on $ o ^. OsId ==. po ^. ProjectOsFkOsId
+         on $ o ^. OsId ==. po ^. ProjectOsOId
          orderBy [ asc (o ^. OsName) ]
          return (o ^. OsName)
   return $ catMaybes $ fmap (fmap unpack . unValue ) ol
@@ -119,7 +119,7 @@ codinglist = do
   cl <- runDB
     $ select $ distinct
     $ from $ \(pc `InnerJoin` c) -> do
-         on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
+         on $ c ^. CodingId ==. pc ^. ProjectCodingCId
          orderBy [ asc (c ^. CodingName) ]
          return (c ^. CodingName)
   return $ catMaybes $ fmap (fmap unpack . unValue ) cl
@@ -148,9 +148,9 @@ runquery os license coding = runDB
              where_ $ p ^. ProjectId `in_`
                subList_select ( distinct $ from $
                  \(o `InnerJoin` po) -> do
-                   on $ o ^. OsId       ==. po ^. ProjectOsFkOsId
+                   on $ o ^. OsId       ==. po ^. ProjectOsOId
                    where_ $ o ^. OsName ==. val (Just $ pack os') 
-                   return $ po ^. ProjectOsFkProjectId
+                   return $ po ^. ProjectOsPId
                    )
            Nothing -> return ()
          case license of
@@ -158,9 +158,9 @@ runquery os license coding = runDB
              where_ $ p ^. ProjectId `in_`
                subList_select ( distinct $ from $
                  \(l `InnerJoin` pl) -> do
-                   on $ l ^. LicenseId      ==. pl ^. ProjectLicenseFkLicenseId
+                   on $ l ^. LicenseId      ==. pl ^. ProjectLicenseLId
                    where_ $ l ^. LicenseName ==. val (Just $ pack license') 
-                   return $ pl ^. ProjectLicenseFkProjectId
+                   return $ pl ^. ProjectLicensePId
                    )
            Nothing -> return ()
          case coding of
@@ -168,9 +168,9 @@ runquery os license coding = runDB
              where_ $ p ^. ProjectId `in_`
                subList_select ( distinct $ from $
                  \(c `InnerJoin` pl) -> do
-                   on $ c ^. CodingId      ==. pl ^. ProjectCodingFkCodingId
+                   on $ c ^. CodingId      ==. pl ^. ProjectCodingCId
                    where_ $ c ^. CodingName ==. val (Just $ pack coding') 
-                   return $ pl ^. ProjectCodingFkProjectId
+                   return $ pl ^. ProjectCodingPId
                    )
            Nothing -> return ()
          limit 50
@@ -192,10 +192,10 @@ softwareWidget key = do
     results <- handlerToWidget $ runDB
            $ select $ distinct
            $ from $ \(p `InnerJoin` pl `InnerJoin` l `InnerJoin` pc `InnerJoin` c) -> do
-                on $ p ^. ProjectId ==. pl ^. ProjectLicenseFkProjectId
-                on $ p ^. ProjectId ==. pc ^. ProjectCodingFkProjectId
-                on $ l ^. LicenseId ==. pl ^. ProjectLicenseFkLicenseId
-                on $ c ^. CodingId ==. pc ^. ProjectCodingFkCodingId
+                on $ p ^. ProjectId ==. pl ^. ProjectLicensePId
+                on $ p ^. ProjectId ==. pc ^. ProjectCodingPId
+                on $ l ^. LicenseId ==. pl ^. ProjectLicenseLId
+                on $ c ^. CodingId ==. pc ^. ProjectCodingCId
                 where_ ( p ^. ProjectId ==. val key )
                 return (l, c)
     let software = "Q" ++ show (fromSqlKey key)

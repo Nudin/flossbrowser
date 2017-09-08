@@ -1,10 +1,11 @@
 ^{header}
 
 <h1>Floss-Browser
+<p .subheader>Find Free- Libre- and OpenSource- Software
 
 ^{chooser os license coding}
 
-<h2> Gefundene Projekte
+<h2> Project matching your criteria
 $forall Entity projectid project <- results
     <div class="software">
         $maybe pic <- projectLogo project
