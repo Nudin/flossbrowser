@@ -28,7 +28,7 @@ genlist s = code
              on $ l ^. $(conE tableId) ==. pl ^. $(conE crosstableId)
              orderBy [ asc (l ^. $(conE tableName)) ]
              return (l ^. $(conE tableName))
-      return $ catMaybes $ fmap (fmap unpack . unValue ) ol
+      return $ catMaybes $ fmap ( unValue ) ol
       |]
 
 gencheck :: String -> String -> ExpQ
@@ -46,7 +46,7 @@ gencheck s t = code
                subList_select ( distinct $ from $
                  \(o `InnerJoin` po) -> do
                    on     $ o  ^. $(conE tableId)   ==. po ^. $(conE crosstableId)
-                   where_ $ o  ^. $(conE tableName) ==. val (Just $ pack _filter)
+                   where_ $ o  ^. $(conE tableName) ==. val (Just _filter)
                    return $ po ^. $(conE crosstablePId)
                    )
            Nothing -> return ()

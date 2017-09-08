@@ -26,7 +26,6 @@ import           Database.Esqueleto
 import qualified Database.Persist             as P
 import qualified Database.Persist.Sqlite      as P
 
-import           Data.Foldable                as F
 import           Control.Monad.Logger         (runStderrLoggingT)
 import           Data.Maybe
 import           System.Environment
@@ -39,15 +38,15 @@ mkYesod
   "Browser"
   [parseRoutes|
     /                          HomeR         GET
-    /software/#String          SoftwareR     GET
+    /software/#Text          SoftwareR     GET
     /softwarebyid/#Int         SoftwareIdR   GET
 
     /favicon.ico               FaviconR      GET
 
-    /bylicense/#String         ByLicenseR    GET
-    /bycoding/#String          ByCodingR     GET
+    /bylicense/#Text         ByLicenseR    GET
+    /bycoding/#Text          ByCodingR     GET
 
-    !/*[String]                  FilterR     GET
+    !/*Texts                  FilterR     GET
 |]
 
 instance YesodPersist Browser where
@@ -80,20 +79,20 @@ http2https :: Text -> Text
 http2https = Data.Text.replace "http://" "https://"
 
 -- Generate a nice Title for the page
-gentitle :: String -> String -> String -> String
-gentitle o l c = "Flossbrowser: Software" ++
-    F.concat (Data.List.zipWith (+++) texts [o, l, c])
+gentitle :: Text -> Text -> Text -> Text
+gentitle o l c = "Flossbrowser: Software" `Data.Text.append`
+    Data.Text.concat (Data.List.zipWith (+++) texts [o, l, c])
         where
-          (+++) :: String -> String -> String
+          (+++) :: Text -> Text -> Text
           (+++) _ "*" = ""
-          (+++) a  b  = (++) a b
+          (+++) a  b  = Data.Text.append a b
           texts = [" for ", " licenced under ", " written in "]
 
 
 -- Chooser, to allow filtering for License, etc.
 -- For now it works via Page-Redirect and the Recource-Handler do the work
 -- The list of what options are available is currently given as an argument
-chooser :: String -> String -> String -> String -> String -> Widget
+chooser :: Text -> Text -> Text -> Text -> Text -> Widget
 chooser cat os license coding gui = do
     ll <- handlerToWidget $(genlist "License")
     cl <- handlerToWidget $(genlist "Coding")
@@ -106,7 +105,7 @@ chooser cat os license coding gui = do
 
 runquery
   :: (YesodPersist site, YesodPersistBackend site ~ SqlBackend) =>
-    Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String
+    Maybe Text -> Maybe Text -> Maybe Text -> Maybe Text -> Maybe Text
       -> HandlerT site IO [Entity Project]
 runquery cat os license coding gui = runDB
     $ select $ distinct
@@ -147,16 +146,16 @@ softwareWidget key = do
     toWidget $(luciusFile "./templates/software.lucius")
 
 -- Show Details to one specified Software
-getSoftwareR :: String -> Handler Html
+getSoftwareR :: Text -> Handler Html
 getSoftwareR software = do
-    projects <- runDB $ P.selectList [ ProjectName P.==. (Just $ pack software) ]  []
+    projects <- runDB $ P.selectList [ ProjectName P.==. (Just software) ]  []
     defaultLayout $ mconcat <$> traverse ( softwareWidget . entityKey ) projects
 
 -- Show Details to one specified Software
 getSoftwareIdR :: Int -> Handler Html
 getSoftwareIdR = defaultLayout . softwareWidget . qidtokey
 
-getFilterN :: String -> String -> String -> String -> String -> Handler Html
+getFilterN :: Text -> Text -> Text -> Text -> Text -> Handler Html
 getFilterN cat os license coding gui = do
     results <- runquery (check cat) (check os) (check license) (check coding) (check gui)
     defaultLayout $ do
@@ -167,20 +166,20 @@ getFilterN cat os license coding gui = do
       check "*" = Nothing
       check s   = Just s
 
-getFilterR :: [String] -> Handler Html
+getFilterR :: [Text] -> Handler Html
 getFilterR (cat:os:license:coding:gui:[]) = getFilterN cat os license coding gui
 getFilterR _ = notFound
 
 -- Get Software by License-Name
-getByLicenseR :: String -> Handler Html
+getByLicenseR :: Text -> Handler Html
 getByLicenseR license = getFilterN "*" "*" license "*" "*"
 
 -- Get Software my Coding-Name
-getByCodingR :: String -> Handler Html
+getByCodingR :: Text -> Handler Html
 getByCodingR coding = getFilterN "*" "*" "*" coding "*" 
 
 -- Get Software my Gui-Name
-getByGuiR :: String -> Handler Html
+getByGuiR :: Text -> Handler Html
 getByGuiR = getFilterN "*" "*" "*" "*" 
 
 getFaviconR :: Handler ()

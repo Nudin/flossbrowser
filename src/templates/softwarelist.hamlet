@@ -14,7 +14,7 @@ $forall Entity projectid project <- results
         $with wikidataid <- fromSqlKey projectid
             $maybe name <- projectName project
                 <h3>
-                    <a href=@{SoftwareR $ unpack name}>#{name}
+                    <a href=@{SoftwareR name}>#{name}
             $nothing
                 <h3 class="notitle">
                     <a href=@{SoftwareIdR $ fromIntegral $ wikidataid}>Q#{wikidataid}
