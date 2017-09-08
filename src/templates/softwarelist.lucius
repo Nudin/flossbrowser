@@ -8,6 +8,12 @@ h3 {
     margin: 0px;
 }
 
+.subheader {
+    text-align: center;
+    margin-top: -0.5em;
+    margin-bottom: 3em;
+}
+
 .notitle a {
     color: gray;
 }

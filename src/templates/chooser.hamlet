@@ -5,13 +5,13 @@
             $forall name <- ol
                     <option :(os == name):selected>
                           #{name}
-    <label> Lizenzen&#32
+    <label> License&#32
         <select name="license" id="licensechooser" onclick="filter()">
             <option>-- all --
             $forall name <- ll
                     <option :(license == name):selected>
                           #{name}
-    <label> Programiersprachen&#32
+    <label> Programing language&#32
         <select name="coding" id="codingchooser" onclick="filter()">
             <option>-- all --
             $forall name <- cl

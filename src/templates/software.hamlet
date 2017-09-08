@@ -30,10 +30,10 @@ $forall Entity projectid project <- projects
               $nothing
                  Unknown!
       $maybe vers <- projectVersion project
-          <li> Aktuelle Version:&nbsp;
+          <li> Current Version:&nbsp;
               #{vers}
       $maybe start <- projectStart project
-          <li> Erschienen:&nbsp;
+          <li> First release:&nbsp;
               #{show start}
       <li> Link:&nbsp;
           <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata</a>,
