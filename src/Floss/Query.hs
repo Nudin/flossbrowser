@@ -8,7 +8,6 @@
 
 module Floss.Query(
     getResource,
-    getResource',
     query,
     queryLicense,
     queryCodings,
@@ -91,15 +90,5 @@ getResource query man = do
     let body   = responseBody res
         mbList = decode body :: Maybe SPARQLResponse
     case mbList of
-        (Just (SPARQLResponseItem c)) -> return c
-        _                             -> return $ ItemList []
-
-getResource' :: String -> Manager -> IO (Collection)
-getResource' query man = do
-    req <- parseUrl $ escapeQuery query
-    res <- httpLbs req man
-    let body   = responseBody res
-        mbList = decode body :: Maybe SPARQLResponse
-    case mbList of
         (Just (SPARQLResponse c)) -> return c
-        _                         -> return $ Collection []
+        _                             -> return $ Empty

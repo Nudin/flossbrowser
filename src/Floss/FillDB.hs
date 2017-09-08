@@ -45,11 +45,13 @@ insertall (Collection l) = do
     zipWithM_ insertsoftwarecoding  (qid <$> l) (coding  <$> l)
     zipWithM_ insertsoftwarelicense (qid <$> l) (license <$> l)
     zipWithM_ insertsoftwareos      (qid <$> l) (os      <$> l)
+insertall Empty = return ()
 
 insertItemLabelList
   :: (PersistEntityBackend record ~ BaseBackend backend,
       PersistStoreWrite backend, MonadIO m, ToBackendKey SqlBackend record) =>
      (Maybe Text -> record) -> ItemList -> ReaderT backend m ()
+insertItemLabelList _ Empty = return ()
 insertItemLabelList const (ItemList l) = mapM_ insertitemlabel l
     where insertitemlabel i = repsert (qidtokey $ iqid i) (const $ iname i)
 
@@ -65,6 +67,6 @@ initDB = runSqlite sqliteDB $ do
     o   <- liftIO  $ getResource queryOs manager
     insertItemLabelList Os o
 
-    col <- liftIO  $ getResource' query manager
+    col <- liftIO  $ getResource query manager
     insertall col
     return ()

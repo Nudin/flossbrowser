@@ -30,11 +30,12 @@ data ItemLabel = ItemLabel {
   iname :: Maybe Text
 } deriving (Show, Generic)
 
-newtype Collection = Collection [Software] deriving (Show, Generic)
-newtype ItemList = ItemList [ItemLabel] deriving (Show, Generic) 
+data ItemList = ItemList [ItemLabel]
+                | Collection [Software]
+                | Empty
+                deriving (Show, Generic) 
 
-data SPARQLResponse = SPARQLResponse Collection
-                    | SPARQLResponseItem ItemList
+data SPARQLResponse = SPARQLResponse ItemList
                     deriving (Show, Generic)
 
 -- Can't we do this more idiomatic? Or at least prettier?
@@ -94,23 +95,15 @@ instance FromJSON ItemLabel where
         (test ItemLabel "os" o)
 
 instance FromJSON ItemList where
-  parseJSON (Object o) = ItemList <$> o .: "bindings"
-  parseJSON _ = mzero
-
-instance FromJSON Collection where
-  parseJSON (Object o) = Collection <$> o .: "bindings"
+  parseJSON (Object o) = 
+    ItemList <$> o .: "bindings" <|>
+      Collection <$> o .: "bindings"
   parseJSON _ = mzero
 
 instance FromJSON SPARQLResponse where
-  parseJSON (Object o) =
-    (SPARQLResponse <$> res o) <|>
-      (SPARQLResponseItem <$> res o)
+  parseJSON (Object o) = (SPARQLResponse <$> res o) 
      where
         res :: FromJSON a => Object -> Parser a
         res = flip (.:) "results"
   parseJSON _ = mzero
-
-
-data Empty = Empty
-newtype FlossResource a = FlossResource a
 
