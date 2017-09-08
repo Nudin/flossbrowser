@@ -5,7 +5,7 @@
 
 ^{chooser os license coding}
 
-<h2> Project matching your criteria
+<h2> Projects matching your criteria:
 $forall Entity projectid project <- results
     <div class="software">
         $maybe pic <- projectLogo project
