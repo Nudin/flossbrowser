@@ -28,21 +28,21 @@ insertsoftware'
       ToBackendKey SqlBackend record2, ToBackendKey SqlBackend record1,
       Integral a, Integral b, PersistEntity record) =>
           (Key record2 -> Key record1 -> record) -> a -> Maybe b -> ReaderT backend m ()
+insertsoftware' _     _   Nothing    = return ()
 insertsoftware' const qid (Just oid) = insert_ $ const (qidtokey qid) (qidtokey oid)
-insertsoftware' _ _ Nothing = return ()
 
+insertall Empty          = return ()
 insertall (Collection l) = do
     mapM_ insertsoftware l
     zipWithM_ (insertsoftware' ProjectCoding)  (qid <$> l) (coding  <$> l)
     zipWithM_ (insertsoftware' ProjectLicense) (qid <$> l) (license <$> l)
     zipWithM_ (insertsoftware' ProjectOs)      (qid <$> l) (os      <$> l)
-insertall Empty = return ()
 
 insertItemLabelList
   :: (PersistEntityBackend record ~ BaseBackend backend,
       PersistStoreWrite backend, MonadIO m, ToBackendKey SqlBackend record) =>
      (Maybe Text -> record) -> ItemList -> ReaderT backend m ()
-insertItemLabelList _ Empty = return ()
+insertItemLabelList _     Empty        = return ()
 insertItemLabelList const (ItemList l) = mapM_ insertitemlabel l
     where insertitemlabel i = repsert (qidtokey $ iqid i) (const $ iname i)
 

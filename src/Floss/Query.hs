@@ -91,4 +91,4 @@ getResource query man = do
         mbList = decode body :: Maybe SPARQLResponse
     case mbList of
         (Just (SPARQLResponse c)) -> return c
-        _                             -> return $ Empty
+        _                         -> return $ Empty

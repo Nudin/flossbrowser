@@ -39,6 +39,7 @@ data SPARQLResponse = SPARQLResponse ItemList
                     deriving (Show, Generic)
 
 -- Can't we do this more idiomatic? Or at least prettier?
+-- TODO: Move them?
 parseId :: Text -> Object -> Parser (WikidataItemID)
 parseId field o = do
   result <- o .: field
@@ -63,12 +64,6 @@ parseMaybeDay field o = do
       parseDay :: String -> Maybe Day
       parseDay = parseTimeM True defaultTimeLocale "%FT%TZ"
 
---TODO rename
-test c s o =
-    c <$> parseId s o
-      <*> parseMaybeText (s `Data.Text.append`  "Label") o
-test _ _ _ = mzero
-
 
 {- Mixed applicative and monad version -}
 instance FromJSON Software where
@@ -90,9 +85,13 @@ instance FromJSON Software where
 
 instance FromJSON ItemLabel where
     parseJSON (Object o) = do
-      (test ItemLabel "license" o) <|> 
-        (test ItemLabel "language" o) <|> 
-        (test ItemLabel "os" o)
+      (parseIDLabel ItemLabel "license") <|> 
+        (parseIDLabel ItemLabel "language") <|> 
+        (parseIDLabel ItemLabel "os")
+      where
+        parseIDLabel c s =
+            c <$> parseId s o
+              <*> parseMaybeText (s `append` "Label") o
 
 instance FromJSON ItemList where
   parseJSON (Object o) = 
