@@ -47,11 +47,7 @@ mkYesod
     /bylicense/#String         ByLicenseR    GET
     /bycoding/#String          ByCodingR     GET
 
-    !/#String                                   Filter1R     GET
-    !/#String/#String                           Filter2R     GET
-    !/#String/#String/#String                   Filter3R     GET
-    !/#String/#String/#String/#String           Filter4R     GET
-    !/#String/#String/#String/#String/#String   Filter5R     GET
+    !/*[String]                  FilterR     GET
 |]
 
 instance YesodPersist Browser where
@@ -171,25 +167,9 @@ getFilterN cat os license coding gui = do
       check "*" = Nothing
       check s   = Just s
 
--- Get Software by Cat
-getFilter1R :: String -> Handler Html
-getFilter1R cat = getFilterN cat "*" "*" "*" "*"
-
--- Get Software by Cat & OS
-getFilter2R :: String -> String -> Handler Html
-getFilter2R cat os = getFilterN cat os "*" "*" "*"
-
--- Get Software by Cat, OS & License
-getFilter3R :: String -> String -> String -> Handler Html
-getFilter3R cat os license = getFilterN cat os license "*" "*"
-
--- Get Software by Cat, OS & License
-getFilter4R :: String -> String -> String -> String -> Handler Html
-getFilter4R cat os license coding = getFilterN cat os license coding "*"
-
--- Get Software by OS, License & Coding
-getFilter5R :: String -> String -> String -> String -> String -> Handler Html
-getFilter5R = getFilterN
+getFilterR :: [String] -> Handler Html
+getFilterR (cat:os:license:coding:gui:[]) = getFilterN cat os license coding gui
+getFilterR _ = notFound
 
 -- Get Software by License-Name
 getByLicenseR :: String -> Handler Html
