@@ -43,6 +43,8 @@ insertall (Collection l) = do
     zipWithM_ (insertsoftware' ProjectCoding)  (qid <$> l) (coding  <$> l)
     zipWithM_ (insertsoftware' ProjectLicense) (qid <$> l) (license <$> l)
     zipWithM_ (insertsoftware' ProjectOs)      (qid <$> l) (os      <$> l)
+    zipWithM_ (insertsoftware' ProjectGui)     (qid <$> l) (gui     <$> l)
+    zipWithM_ (insertsoftware' ProjectCat)     (qid <$> l) (cat     <$> l)
 insertall _  = return ()
 
 insertItemLabelList
@@ -54,17 +56,22 @@ insertItemLabelList con (ItemList l) = mapM_ insertitemlabel l
 insertItemLabelList _     _ = return ()
 
 
+
 initDB :: IO ()
 initDB = runSqlite sqliteDB $ do
     runMigration migrateAll
     manager <- liftIO $ newManager tlsManagerSettings
-    l   <- liftIO  $ getResource queryLicense manager
-    insertItemLabelList License l
-    c   <- liftIO  $ getResource queryCodings manager
-    insertItemLabelList Coding c
-    o   <- liftIO  $ getResource queryOs manager
-    insertItemLabelList Os o
+    insertLabels manager queryLicense License
+    insertLabels manager queryCodings Coding
+    insertLabels manager queryOs      Os
+    insertLabels manager queryGui     Gui
+    insertLabels manager queryCat     Cat
 
     col <- liftIO  $ getResource query manager
     insertall col
     return ()
+      where
+        insertLabels manager q con = do
+          l <- liftIO $ getResource q manager
+          insertItemLabelList con l
+

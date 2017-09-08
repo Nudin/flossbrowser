@@ -17,3 +17,15 @@
             $forall name <- cl
                       <option :(coding == name):selected>
                           #{name}
+    <label> Gui&#32
+        <select name="gui" id="guichooser" onclick="filter()">
+            <option>-- all --
+            $forall name <- gl
+                      <option :(gui == name):selected>
+                          #{name}
+    <label> Category&#32
+        <select name="cat" id="catchooser" onclick="filter()">
+            <option>-- all --
+            $forall name <- tl
+                      <option :(cat == name):selected>
+                          #{name}

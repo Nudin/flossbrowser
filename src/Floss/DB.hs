@@ -47,6 +47,12 @@ License
 Coding
     name Text Maybe
     deriving Show
+Gui
+    name Text Maybe
+    deriving Show
+Cat
+    name Text Maybe
+    deriving Show
 ProjectOs
     pId ProjectId
     oId OsId
@@ -58,6 +64,14 @@ ProjectCoding
 ProjectLicense
     pId ProjectId
     lId LicenseId
+    deriving Show
+ProjectGui
+    pId ProjectId
+    gId GuiId
+    deriving Show
+ProjectCat
+    pId ProjectId
+    cId CatId
     deriving Show
 |]
 

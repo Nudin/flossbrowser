@@ -21,7 +21,9 @@ data Software = Software {
   project     :: Project,
   os          :: Maybe WikidataItemID,
   coding      :: Maybe WikidataItemID,
-  license     :: Maybe WikidataItemID
+  license     :: Maybe WikidataItemID,
+  gui         :: Maybe WikidataItemID,
+  cat         :: Maybe WikidataItemID
   } deriving (Show, Generic)
 
 data ItemLabel = ItemLabel {
@@ -32,7 +34,7 @@ data ItemLabel = ItemLabel {
 data ItemList = ItemList [ItemLabel]
                 | Collection [Software]
                 | Empty
-                deriving (Show, Generic)
+                deriving (Show, Generic) 
 
 newtype SPARQLResponse = SPARQLResponse ItemList
                     deriving (Show, Generic)
@@ -77,13 +79,17 @@ instance FromJSON Software where
                  <*> parseMaybeId "os" o
                  <*> parseMaybeId "language" o
                  <*> parseMaybeId "license" o
+                 <*> parseMaybeId "gui" o
+                 <*> parseMaybeId "cat" o
     parseJSON _ = mzero
 
 instance FromJSON ItemLabel where
     parseJSON (Object o) =
         parseIDLabel ItemLabel "license"  <|>
         parseIDLabel ItemLabel "language" <|>
-        parseIDLabel ItemLabel "os"
+        parseIDLabel ItemLabel "os" <|>
+        parseIDLabel ItemLabel "gui" <|> 
+        parseIDLabel ItemLabel "category"
       where
         parseIDLabel c s =
             c <$> parseId s o
@@ -91,13 +97,13 @@ instance FromJSON ItemLabel where
     parseJSON _ = mzero
 
 instance FromJSON ItemList where
-  parseJSON (Object o) =
+  parseJSON (Object o) = 
     ItemList <$> o .: "bindings" <|>
       Collection <$> o .: "bindings"
   parseJSON _ = mzero
 
 instance FromJSON SPARQLResponse where
-  parseJSON (Object o) = SPARQLResponse <$> res o
+  parseJSON (Object o) = SPARQLResponse <$> res o  -- TODO: res macht keinen Sin mehr
      where
         res :: FromJSON a => Object -> Parser a
         res = flip (.:) "results"

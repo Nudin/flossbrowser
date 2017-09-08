@@ -11,11 +11,12 @@
 
 
 import           Floss.DB
+import Genlists
 
 import           Text.Hamlet
 import           Text.Julius
 import           Text.Lucius
-import           Yesod                        hiding ((==.),check)
+import           Yesod                        hiding ((==.), check)
 
 import qualified Data.Char                    as C
 import qualified Data.Text                    as T
@@ -30,7 +31,7 @@ import           Control.Monad.Logger         (runStderrLoggingT)
 import           Control.Monad.Reader
 import           Data.Maybe
 
-newtype Browser = Browser ConnectionPool
+data Browser = Browser ConnectionPool
 
 instance Yesod Browser
 
@@ -46,9 +47,11 @@ mkYesod
     /bylicense/#String         ByLicenseR    GET
     /bycoding/#String          ByCodingR     GET
 
-    !/#String                   Filter1R     GET
-    !/#String/#String           Filter2R     GET
-    !/#String/#String/#String   Filter3R     GET
+    !/#String                                   Filter1R     GET
+    !/#String/#String                           Filter2R     GET
+    !/#String/#String/#String                   Filter3R     GET
+    !/#String/#String/#String/#String           Filter4R     GET
+    !/#String/#String/#String/#String/#String   Filter5R     GET
 |]
 
 instance YesodPersist Browser where
@@ -90,96 +93,40 @@ gentitle o l c = "Flossbrowser: Software" ++
           (+++) a  b  = (++) a b
           texts = [" for ", " licenced under ", " written in "]
 
--- Query to get the list of all licenses
--- TODO: Cache results?
-licenselist :: HandlerT Browser IO [String]
-licenselist = do
-  ll <- runDB
-    $ select $ distinct
-    $ from $ \(pl `InnerJoin` l) -> do
-         on $ l ^. LicenseId ==. pl ^. ProjectLicenseLId
-         orderBy [ asc (l ^. LicenseName) ]
-         return (l ^. LicenseName)
-  return $ catMaybes $ fmap (fmap unpack . unValue ) ll
-
----- TODO: Cache results?
-oslist :: HandlerT Browser IO [String]
-oslist = do
-  ol <- runDB
-    $ select $ distinct
-    $ from $ \(po `InnerJoin` o) -> do
-         on $ o ^. OsId ==. po ^. ProjectOsOId
-         orderBy [ asc (o ^. OsName) ]
-         return (o ^. OsName)
-  return $ catMaybes $ fmap (fmap unpack . unValue ) ol
-
----- TODO: Cache results?
-codinglist :: HandlerT Browser IO [String]
-codinglist = do 
-  cl <- runDB
-    $ select $ distinct
-    $ from $ \(pc `InnerJoin` c) -> do
-         on $ c ^. CodingId ==. pc ^. ProjectCodingCId
-         orderBy [ asc (c ^. CodingName) ]
-         return (c ^. CodingName)
-  return $ catMaybes $ fmap (fmap unpack . unValue ) cl
 
 -- Chooser, to allow filtering for License, etc.
 -- For now it works via Page-Redirect and the Recource-Handler do the work
 -- The list of what options are available is currently given as an argument
-chooser :: String -> String -> String -> Widget
-chooser os license coding = do
-    ll <- handlerToWidget licenselist
-    cl <- handlerToWidget codinglist
-    ol <- handlerToWidget oslist
+chooser :: String -> String -> String -> String -> String -> Widget
+chooser cat os license coding gui = do
+    ll <- handlerToWidget $(genlist "License")
+    cl <- handlerToWidget $(genlist "Coding")
+    ol <- handlerToWidget $(genlist "Os")
+    gl <- handlerToWidget $(genlist "Gui")
+    tl <- handlerToWidget $(genlist "Cat")
     toWidget $(hamletFile "./templates/chooser.hamlet")
     toWidget $(juliusFile "./templates/chooser.julius")
     toWidget $(luciusFile "./templates/chooser.lucius")
 
 runquery
   :: (YesodPersist site, YesodPersistBackend site ~ SqlBackend) =>
-     Maybe String -> Maybe String -> Maybe String
+    Maybe String -> Maybe String -> Maybe String -> Maybe String -> Maybe String
       -> HandlerT site IO [Entity Project]
-runquery os license coding = runDB
+runquery cat os license coding gui = runDB
     $ select $ distinct
     $ from $ \p -> do
-         case os of
-           Just os' ->
-             where_ $ p ^. ProjectId `in_`
-               subList_select ( distinct $ from $
-                 \(o `InnerJoin` po) -> do
-                   on $ o ^. OsId       ==. po ^. ProjectOsOId
-                   where_ $ o ^. OsName ==. val (Just $ pack os') 
-                   return $ po ^. ProjectOsPId
-                   )
-           Nothing -> return ()
-         case license of
-           Just license' ->
-             where_ $ p ^. ProjectId `in_`
-               subList_select ( distinct $ from $
-                 \(l `InnerJoin` pl) -> do
-                   on $ l ^. LicenseId      ==. pl ^. ProjectLicenseLId
-                   where_ $ l ^. LicenseName ==. val (Just $ pack license') 
-                   return $ pl ^. ProjectLicensePId
-                   )
-           Nothing -> return ()
-         case coding of
-           Just coding' ->
-             where_ $ p ^. ProjectId `in_`
-               subList_select ( distinct $ from $
-                 \(c `InnerJoin` pl) -> do
-                   on $ c ^. CodingId      ==. pl ^. ProjectCodingCId
-                   where_ $ c ^. CodingName ==. val (Just $ pack coding') 
-                   return $ pl ^. ProjectCodingPId
-                   )
-           Nothing -> return ()
+         $(gencheck "os"      "Os")
+         $(gencheck "cat"     "Cat")
+         $(gencheck "license" "License")
+         $(gencheck "coding"  "Coding")
+         $(gencheck "gui"     "Gui")
          limit 50
          return p
 
 
 -- List all Software
 getHomeR :: Handler Html
-getHomeR = getFilterN "*" "*" "*"
+getHomeR = getFilterN "*" "*" "*" "*" "*"
 
 softwareWidget :: Key Project -> WidgetT Browser IO ()
 softwareWidget key = do
@@ -213,9 +160,9 @@ getSoftwareR software = do
 getSoftwareIdR :: Int -> Handler Html
 getSoftwareIdR = defaultLayout . softwareWidget . qidtokey
 
-getFilterN :: String -> String -> String -> Handler Html
-getFilterN os license coding = do
-    results <- runquery (check os) (check license) (check coding)
+getFilterN :: String -> String -> String -> String -> String -> Handler Html
+getFilterN cat os license coding gui = do
+    results <- runquery (check cat) (check os) (check license) (check coding) (check gui)
     defaultLayout $ do
       setTitle $ toHtml $ gentitle os license coding
       toWidget $(whamletFile "./templates/softwarelist.hamlet")
@@ -224,25 +171,37 @@ getFilterN os license coding = do
       check "*" = Nothing
       check s   = Just s
 
--- Get Software by OS
+-- Get Software by Cat
 getFilter1R :: String -> Handler Html
-getFilter1R os = getFilterN os "*" "*"
+getFilter1R cat = getFilterN cat "*" "*" "*" "*"
 
--- Get Software by OS & License
+-- Get Software by Cat & OS
 getFilter2R :: String -> String -> Handler Html
-getFilter2R os license = getFilterN os license "*"
+getFilter2R cat os = getFilterN cat os "*" "*" "*"
+
+-- Get Software by Cat, OS & License
+getFilter3R :: String -> String -> String -> Handler Html
+getFilter3R cat os license = getFilterN cat os license "*" "*"
+
+-- Get Software by Cat, OS & License
+getFilter4R :: String -> String -> String -> String -> Handler Html
+getFilter4R cat os license coding = getFilterN cat os license coding "*"
 
 -- Get Software by OS, License & Coding
-getFilter3R :: String -> String -> String -> Handler Html
-getFilter3R = getFilterN
+getFilter5R :: String -> String -> String -> String -> String -> Handler Html
+getFilter5R = getFilterN
 
 -- Get Software by License-Name
 getByLicenseR :: String -> Handler Html
-getByLicenseR license = getFilterN "*" license "*"
+getByLicenseR license = getFilterN "*" "*" license "*" "*"
 
 -- Get Software my Coding-Name
 getByCodingR :: String -> Handler Html
-getByCodingR = getFilterN "*" "*"
+getByCodingR coding = getFilterN "*" "*" "*" coding "*" 
+
+-- Get Software my Gui-Name
+getByGuiR :: String -> Handler Html
+getByGuiR = getFilterN "*" "*" "*" "*" 
 
 getFaviconR :: Handler ()
 getFaviconR = sendFile "image/vnd.microsoft.icon" "favicon.ico"
