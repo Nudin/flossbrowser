@@ -71,7 +71,7 @@ initDB = runSqlite sqliteDB $ do
     insertall col
     return ()
       where
-        insertLabels manager query const = do
-          l <- liftIO $ getResource query manager
-          insertItemLabelList const l
+        insertLabels manager q con = do
+          l <- liftIO $ getResource q manager
+          insertItemLabelList con l
 

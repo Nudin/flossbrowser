@@ -16,7 +16,7 @@ import Genlists
 import           Text.Hamlet
 import           Text.Julius
 import           Text.Lucius
-import           Yesod                        hiding ((==.))
+import           Yesod                        hiding ((==.), check)
 
 import qualified Data.Char                    as C
 import qualified Data.Text                    as T
@@ -30,8 +30,6 @@ import           Data.Foldable                as F
 import           Control.Monad.Logger         (runStderrLoggingT)
 import           Data.Maybe
 import           System.Environment
-import           Language.Haskell.TH
-import    Control.Monad.Trans.Reader
 
 data Browser = Browser ConnectionPool
 
