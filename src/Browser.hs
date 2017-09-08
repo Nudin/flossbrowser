@@ -152,8 +152,8 @@ catlist = do
 -- Chooser, to allow filtering for License, etc.
 -- For now it works via Page-Redirect and the Recource-Handler do the work
 -- The list of what options are available is currently given as an argument
-chooser :: String -> String -> String -> Widget
-chooser os license coding = do
+chooser :: String -> String -> String -> String -> String -> Widget
+chooser cat os license coding gui = do
     ll <- handlerToWidget licenselist
     cl <- handlerToWidget codinglist
     ol <- handlerToWidget oslist
