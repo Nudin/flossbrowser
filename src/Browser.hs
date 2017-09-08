@@ -27,8 +27,8 @@ import qualified Database.Persist.Sqlite      as P
 
 import           Data.Foldable                as F
 import           Control.Monad.Logger         (runStderrLoggingT)
+import           Control.Monad.Reader
 import           Data.Maybe
-import           System.Environment
 
 newtype Browser = Browser ConnectionPool
 
@@ -247,11 +247,24 @@ getByCodingR = getFilterN "*" "*"
 getFaviconR :: Handler ()
 getFaviconR = sendFile "image/vnd.microsoft.icon" "favicon.ico"
 
+newtype BrowserEnv = BrowserEnv { port :: Int }
+
+-- This application runs in a reader / IO transformer stack
+type BrowserT m = ReaderT BrowserEnv m
+type BrowserIO  = BrowserT IO
+
+runBrowserT :: Monad m => BrowserEnv -> BrowserT m a -> m a
+runBrowserT = flip runReaderT
+
+server :: BrowserIO ()
+server = do
+    e <- ask
+    let p = port e
+    liftIO $ runStderrLoggingT $ P.withSqlitePool sqliteDBro 10 $
+             \pool -> liftIO $ warp p $ Browser pool
+    return ()
+
 main :: IO ()
 main = do
-    t <- lookupEnv "PORT"
-    let port = fromMaybe 3000 $ toint <$> t
-    runStderrLoggingT $ P.withSqlitePool sqliteDBro 10 $
-         \pool -> liftIO $ warp port $ Browser pool
-      where
-        toint s = read s :: Int
+    let be = BrowserEnv { port = 3000 }
+    runBrowserT be server
