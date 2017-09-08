@@ -51,17 +51,16 @@ Coding
     name Text Maybe
     deriving Show
 ProjectOs
-    fkProjectId ProjectId
-    fkOsId OsId
+    pId ProjectId
+    oId OsId
     deriving Show
 ProjectCoding
-    fkProjectId ProjectId
-    fkCodingId CodingId
-    --UniqueMatch fkProjectId fkCodingId
+    pId ProjectId
+    cId CodingId
     deriving Show
 ProjectLicense
-    fkProjectId ProjectId
-    fkLicenseId LicenseId
+    pId ProjectId
+    lId LicenseId
     deriving Show
 |]
 
