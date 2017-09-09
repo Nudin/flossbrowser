@@ -1,13 +1,12 @@
-
-{-# LANGUAGE EmptyDataDecls             #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE GADTs                      #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE QuasiQuotes                #-}
-{-# LANGUAGE TemplateHaskell            #-}
-{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE   EmptyDataDecls
+             , FlexibleContexts
+             , GADTs
+             , GeneralizedNewtypeDeriving
+             , MultiParamTypeClasses
+             , OverloadedStrings
+             , QuasiQuotes
+             , TemplateHaskell
+             , TypeFamilies #-}
 
 module Floss.DB where
 
@@ -75,5 +74,6 @@ ProjectCat
     deriving Show
 |]
 
+-- Deduce a db key from a WikiData Qxxxxx identifier
 qidtokey :: (ToBackendKey SqlBackend record, Integral a) => a -> Key record
 qidtokey qid = toSqlKey (fromIntegral qid :: Int64)

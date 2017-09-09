@@ -16,7 +16,6 @@ module Floss.Query(
     queryCat
 ) where
 
-import Str(str)
 
 import Data.Aeson
 
@@ -24,11 +23,13 @@ import Network.URI(escapeURIString,isAllowedInURI)
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS()
 
+import Floss.Str(str)
 import Floss.Parser
 
 url :: String
 url = "https://query.wikidata.org/sparql?format=json&query="
 
+-- SPARQL query to get FLOSS from WikiData
 query :: String
 query = [str|
 SELECT DISTINCT ?floss ?description ?name
@@ -116,7 +117,7 @@ SELECT DISTINCT ?category ?categoryLabel WHERE {
     VALUES ?kind { wd:Q196294 wd:Q1156659 }.
   }
 
-  OPTIONAL { 
+  OPTIONAL {
     ?floss wdt:P31 ?category.
   }
 

@@ -13,7 +13,7 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 import           Floss.DB
-import           Genlists
+import           Floss.Genlists
 
 import           Text.Hamlet
 import           Text.Julius

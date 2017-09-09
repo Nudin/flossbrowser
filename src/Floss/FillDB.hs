@@ -1,7 +1,7 @@
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE GADTs                      #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE   FlexibleContexts
+             , GADTs
+             , MultiParamTypeClasses
+             , TypeFamilies #-}
 
 module Floss.FillDB where
 
@@ -36,6 +36,7 @@ insertsoftware'
 insertsoftware' _     _   Nothing    = return ()
 insertsoftware' con qId (Just oId) = insert_ $ con (qidtokey qId) (qidtokey oId)
 
+-- Insert all records into the database
 insertall :: ItemList
              -> ReaderT SqlBackend (NoLoggingT (ResourceT IO)) ()
 insertall (Collection l) = do
@@ -56,7 +57,7 @@ insertItemLabelList con (ItemList l) = mapM_ insertitemlabel l
 insertItemLabelList _     _ = return ()
 
 
-
+-- Receive, parse and store the data from WikiData
 initDB :: IO ()
 initDB = runSqlite sqliteDB $ do
     runMigration migrateAll

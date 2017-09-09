@@ -1,15 +1,15 @@
-{-# LANGUAGE TemplateHaskell            #-}
-{-# LANGUAGE EmptyDataDecls             #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE GADTs                      #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE QuasiQuotes                #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE ViewPatterns               #-}
+{-# LANGUAGE   TemplateHaskell
+             , EmptyDataDecls
+             , FlexibleContexts
+             , GADTs
+             , GeneralizedNewtypeDeriving
+             , MultiParamTypeClasses
+             , OverloadedStrings
+             , QuasiQuotes
+             , TypeFamilies
+             , ViewPatterns #-}
 
-module Genlists where
+module Floss.Genlists where
 
 import Language.Haskell.TH
 import Database.Esqueleto
@@ -29,7 +29,7 @@ genlist s = code
              on $ l ^. $(conE tableId) ==. pl ^. $(conE crosstableId)
              orderBy [ asc (l ^. $(conE tableName)) ]
              return (l ^. $(conE tableName))
-      return $ catMaybes $ fmap ( unValue ) ol
+      return $ catMaybes $ fmap unValue ol
       |]
 
 gencheck :: String -> ExpQ

@@ -1,16 +1,16 @@
 CC=ghc
 TMPDIRNAME=build
 FLAGS=-Wall -hidir $(TMPDIRNAME) -odir $(TMPDIRNAME)
-SRC=Main.hs Floss/DB.hs Floss/FillDB.hs Floss/Query.hs Floss/Types.hs Str.hs URLtoID.hs
+SRC=CreateDB.hs
 .PHONY: purge
-
-all: tmpdir Main Browser
 .PHONY: all
 
-Browser: Browser.hs
+all: tmpdir main browser
+
+browser: Browser.hs
 	$(CC) $(FLAGS) Browser.hs
 
-Main: $(SRC)
+main: $(SRC)
 	$(CC) $(FLAGS) $(SRC)
 
 clean:

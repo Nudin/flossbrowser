@@ -1,5 +1,5 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE   DeriveGeneric
+             , OverloadedStrings #-}
 
 module Floss.Parser where
 
@@ -31,10 +31,11 @@ data ItemLabel = ItemLabel {
   iname :: Maybe Text
 } deriving (Show, Generic)
 
+-- Container types
 data ItemList = ItemList [ItemLabel]
                 | Collection [Software]
                 | Empty
-                deriving (Show, Generic) 
+                deriving (Show, Generic)
 
 newtype SPARQLResponse = SPARQLResponse ItemList
                     deriving (Show, Generic)
@@ -64,6 +65,7 @@ parseMaybeDay field o = do
       parseDay = parseTimeM True defaultTimeLocale "%FT%TZ"
 
 
+-- Parsers for JSON objects
 instance FromJSON Software where
     parseJSON (Object o) =
         Software <$> parseId "floss" o
