@@ -13,6 +13,7 @@ import Control.Monad
 import Control.Applicative
 
 import Floss.Types
+import Floss.Str
 import Floss.DB
 
 -- Datatype for a Software item
@@ -105,7 +106,7 @@ instance FromJSON ItemList where
   parseJSON _ = mzero
 
 instance FromJSON SPARQLResponse where
-  parseJSON (Object o) = SPARQLResponse <$> res o  -- TODO: res macht keinen Sin mehr
+  parseJSON (Object o) = SPARQLResponse <$> res o
      where
         res :: FromJSON a => Object -> Parser a
         res = flip (.:) "results"

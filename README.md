@@ -1,28 +1,16 @@
-FFP-Projekt: FLOSS-Browser auf Wikidatabasis
-============================================
+FFP-Project: FLOSS-Browser based on  Wikidata
+=============================================
 
-Stand:
-* getall.rq ist eine Sparql-Query die von Wikidata eine Liste aller FLOSS-Projekte bezieht.
+A Yesod web app display and filter Free, Libre and Open Source Software
+-----------------------------------------------------------------------
 
-Felder die die Seite anzeigen sollte:
-* Von Anfang an
- * Name
- * Link
- * Programming language
- * License
-* Bei Projektabgabe
- * Description
- * OS
- * Logo
- * Screenshot
- * Version
- * Kategorie-Baum
-* Version x
- * Veröffentlichungsdatum/Gründungs-/Erstellungsdatum
- * Entwickler/Urheber
- * Schreibbare/Lesbare Dateiformate
- * Quelltext-Repository
- * Webseite für Programmfehlermeldungen
- * GUI-Bibliothet
- * Versions-Geschichte
- * …
+### Compilation
+    Change into the `src` folder and run `make`.
+
+### Run
+    First create the backend database by running `./CreateDB`.
+    In case that a network error occurs, wikidata might be busy or slow.
+    Simply run the program again a few seconds later.
+
+    Afterwards run `./Browser` and visit the website on `127.0.0.1:3000`.
+    The port can be changed in `flossrc`.
