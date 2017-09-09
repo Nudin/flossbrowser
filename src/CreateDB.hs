@@ -9,4 +9,4 @@ main :: IO ()
 main = initDB `catch` (\(e :: HttpException) -> handleHTTPEx e)
 
 handleHTTPEx :: HttpException -> IO ()
-handleHTTPEx _ = print "A network error occurred"
+handleHTTPEx _ = print "A network error occurred. Wikidata is probably busy, try again."
