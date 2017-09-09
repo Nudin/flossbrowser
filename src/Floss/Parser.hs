@@ -106,9 +106,6 @@ instance FromJSON ItemList where
   parseJSON _ = mzero
 
 instance FromJSON SPARQLResponse where
-  parseJSON (Object o) = SPARQLResponse <$> res o
-     where
-        res :: FromJSON a => Object -> Parser a
-        res = flip (.:) "results"
+  parseJSON (Object o) = SPARQLResponse <$> o .: "results"
   parseJSON _ = mzero
 
