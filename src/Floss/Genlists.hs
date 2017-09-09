@@ -21,7 +21,7 @@ genlist :: String -> ExpQ
 genlist s = code
   where
     tableId      = mkName $ s ++ "Id"
-    crosstableId = mkName $ "Project" ++ s ++ Prelude.head s:"Id" -- TODO: head
+    crosstableId = mkName $ "Project" ++ s ++ "XId"
     tableName    = mkName $ s ++ "Name"
     code = [| do
       ol <- runDB $ select $ distinct
@@ -36,7 +36,7 @@ gencheck :: String -> ExpQ
 gencheck t = code
   where
     tableId       = mkName $ t ++ "Id"
-    crosstableId  = mkName $ "Project" ++ t ++ Prelude.head t:"Id" -- TODO: head
+    crosstableId  = mkName $ "Project" ++ t ++ "XId"
     crosstablePId = mkName $ "Project" ++ t ++ "PId"
     tableName     = mkName $ t ++ "Name"
     var           = mkName $ fmap toLower t

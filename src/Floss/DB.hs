@@ -21,7 +21,7 @@ import Floss.Types
 
 
 sqliteDB :: Text
-sqliteDB = "file:test.sql"
+sqliteDB = "file:flossbrowser.sqlite"
 
 sqliteDBro :: Text
 sqliteDBro = append sqliteDB "?mode=ro"
@@ -54,23 +54,23 @@ Cat
     deriving Show
 ProjectOs
     pId ProjectId
-    oId OsId
+    xId OsId
     deriving Show
 ProjectCoding
     pId ProjectId
-    cId CodingId
+    xId CodingId
     deriving Show
 ProjectLicense
     pId ProjectId
-    lId LicenseId
+    xId LicenseId
     deriving Show
 ProjectGui
     pId ProjectId
-    gId GuiId
+    xId GuiId
     deriving Show
 ProjectCat
     pId ProjectId
-    cId CatId
+    xId CatId
     deriving Show
 |]
 

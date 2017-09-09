@@ -155,8 +155,8 @@ softwareWidget key = do
                       l `InnerJoin` pc `InnerJoin` c) -> do
                 on $ p ^. ProjectId ==. pl ^. ProjectLicensePId
                 on $ p ^. ProjectId ==. pc ^. ProjectCodingPId
-                on $ l ^. LicenseId ==. pl ^. ProjectLicenseLId
-                on $ c ^. CodingId ==. pc ^. ProjectCodingCId
+                on $ l ^. LicenseId ==. pl ^. ProjectLicenseXId
+                on $ c ^. CodingId  ==. pc ^. ProjectCodingXId
                 where_ ( p ^. ProjectId ==. val key )
                 return (l, c)
     let software = "Q" ++ show (fromSqlKey key)

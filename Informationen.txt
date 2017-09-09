@@ -15,4 +15,5 @@ Projekttitel: FLOSS-Browser
         Persistent
         Template Haskell
         Spracherweiterungen
-        Monad Transformers, Exceptions (jeweils minimal)
+        Quasiquotation, Monad Transformers, Exceptions (jeweils minimal)
+        Grundlagen

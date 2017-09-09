@@ -3,6 +3,13 @@ FFP-Project: FLOSS-Browser based on  Wikidata
 
 A Yesod web app display and filter Free, Libre and Open Source Software
 -----------------------------------------------------------------------
+There are two separate components: the backend wich queries Wikidata and saves
+the information in a local SQL-Database and Yesod-based Web-Frontend displaying
+the data from the SQL-Database. While the Frontend is intended to run as a
+service, the backend is planed to be started regularly by a cronjob.
+
+The service is already deployed at:
+    https://tools.wmflabs.org/flossbrowser
 
 ### Compilation
     Change into the `src` folder and run `make`.
