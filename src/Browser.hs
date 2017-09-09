@@ -27,8 +27,10 @@ import qualified Database.Persist             as P
 import qualified Database.Persist.Sqlite      as P
 
 import           Control.Monad.Logger         (runStderrLoggingT)
+import           Control.Monad.Reader
 import           Data.Maybe
-import           System.Environment
+import           Data.Configurator            as Conf
+import           Data.Configurator.Types      as Conf
 
 data Browser = Browser ConnectionPool
 
@@ -185,11 +187,41 @@ getByGuiR = getFilterN "*" "*" "*" "*"
 getFaviconR :: Handler ()
 getFaviconR = sendFile "image/vnd.microsoft.icon" "favicon.ico"
 
+newtype BrowserEnv = BrowserEnv { port :: Int }
+
+type BrowserT m = ReaderT BrowserEnv m
+type BrowserIO  = BrowserT IO
+
+-- This application runs in a reader / IO transformer stack
+runBrowserT :: Monad m => BrowserEnv -> BrowserT m a -> m a
+runBrowserT = flip runReaderT
+
+handleConfError :: Show t => t -> IO ()
+handleConfError e = print $ "Error reading config file: " ++ show e
+
+confSettings :: AutoConfig
+confSettings  = AutoConfig { interval = 10
+                           , onError  = handleConfError }
+
+readConfig :: IO BrowserEnv
+readConfig = do
+    (conf, _) <- autoReload confSettings [Required "./flossrc"]
+    mbPort <- Conf.lookup conf "port" :: IO (Maybe Int)
+    let p = case mbPort of
+                (Just v) -> v
+                Nothing  -> 3000
+    return BrowserEnv { port = p }
+
+server :: BrowserIO ()
+server = do
+    env <- ask
+    let p = port env
+    liftIO $ runStderrLoggingT $ P.withSqlitePool sqliteDBro 10 $
+             \pool -> liftIO $ warp p $ Browser pool
+    return ()
+
+
 main :: IO ()
 main = do
-    t <- lookupEnv "PORT"
-    let port = fromMaybe 3000 $ toint <$> t
-    runStderrLoggingT $ P.withSqlitePool sqliteDBro 10 $
-         \pool -> liftIO $ warp port $ Browser pool
-      where
-        toint s = read s :: Int
+    be <- readConfig
+    runBrowserT be server
