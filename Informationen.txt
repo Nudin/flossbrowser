@@ -1,0 +1,17 @@
+Teilnehmer:
+    Michael Schönitzer
+    Fabian Dreer
+
+Prüfungstermin:
+    TODO: beliebig
+
+Projekttitel: FLOSS-Browser
+    Eine Website, zum Suchen von Free, Libre und Open Source Software
+    basierend auf Daten von wikidata.org
+
+    Verwendete Themen aus der Vorlesung:
+        Yesod
+        Persistent
+        Template Haskell
+        Spracherweiterungen
+        Monad Transformers, Exceptions (jeweils minimal)
