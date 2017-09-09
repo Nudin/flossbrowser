@@ -14,16 +14,15 @@
 
 import           Floss.DB
 import           Floss.Genlists
+import           Floss.Str
 
 import           Text.Hamlet
 import           Text.Julius
 import           Text.Lucius
 import           Yesod                   hiding (check, (==.))
 
-import qualified Data.Char               as C
 import           Data.List
 import           Data.Text
-import qualified Data.Text               as T
 import           Database.Esqueleto
 import qualified Database.Persist        as P
 import qualified Database.Persist.Sqlite as P
@@ -46,16 +45,16 @@ instance Yesod Browser
 mkYesod
   "Browser"
   [parseRoutes|
-    /                          HomeR         GET
+    /                        HomeR         GET
     /software/#Text          SoftwareR     GET
-    /softwarebyid/#Int         SoftwareIdR   GET
+    /softwarebyid/#Int       SoftwareIdR   GET
 
-    /favicon.ico               FaviconR      GET
+    /favicon.ico             FaviconR      GET
 
     /bylicense/#Text         ByLicenseR    GET
     /bycoding/#Text          ByCodingR     GET
 
-    !/*Texts                  FilterR     GET
+    !/*Texts                 FilterR       GET
 |]
 
 instance YesodPersist Browser where
@@ -78,14 +77,6 @@ header = do
         <div class="header">
           <a href=@{HomeR}>Home
       |]
-
--- TODO: move to proper place
-normalizestr :: Text -> Text
-normalizestr "" = ""
-normalizestr t  = cons (C.toUpper $ T.head t) (T.tail t)
-
-http2https :: Text -> Text
-http2https = Data.Text.replace "http://" "https://"
 
 
 (!!!) :: [a] -> Int -> Maybe a
