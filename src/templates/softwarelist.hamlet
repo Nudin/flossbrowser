@@ -3,7 +3,7 @@
 <h1>Floss-Browser
 <p .subheader>Find Free- Libre- and OpenSource- Software
 
-^{chooser cat os license coding gui}
+^{chooser f}
 
 <h2> Projects matching your criteria:
 $forall Entity projectid project <- results

@@ -26,6 +26,7 @@ import           Database.Esqueleto
 import qualified Database.Persist             as P
 import qualified Database.Persist.Sqlite      as P
 
+import           Control.Monad
 import           Control.Monad.Logger         (runStderrLoggingT)
 import           Control.Monad.Reader
 import           Data.Maybe
@@ -80,22 +81,40 @@ normalizestr t  = cons (C.toUpper $ T.head t) (T.tail t)
 http2https :: Text -> Text
 http2https = Data.Text.replace "http://" "https://"
 
+
+(!!!) :: [a] -> Int -> Maybe a
+(!!!) a i = if Prelude.length a>i then Just (a !! i) else Nothing
+
+type SoftwareFilter =  [ Maybe Text ]
+
+cat     :: SoftwareFilter -> Maybe Text
+cat     f = join $ f !!! 0
+os      :: SoftwareFilter -> Maybe Text
+os      f = join $ f !!! 1
+license :: SoftwareFilter -> Maybe Text
+license f = join $ f !!! 2
+coding  :: SoftwareFilter -> Maybe Text
+coding  f = join $ f !!! 3
+gui     :: SoftwareFilter -> Maybe Text
+gui     f = join $ f !!! 4
+
+
 -- Generate a nice Title for the page
-gentitle :: Text -> Text -> Text -> Text
-gentitle o l c = "Flossbrowser: Software" `Data.Text.append`
-    Data.Text.concat (Data.List.zipWith (+++) texts [o, l, c])
+gentitle :: SoftwareFilter -> Text
+gentitle f = "Flossbrowser: Software" `Data.Text.append`
+    Data.Text.concat (Data.List.zipWith (+++) texts f)
         where
-          (+++) :: Text -> Text -> Text
-          (+++) _ "*" = ""
-          (+++) a  b  = Data.Text.append a b
-          texts = [" for ", " licenced under ", " written in "]
+          (+++) :: Text -> Maybe Text -> Text
+          (+++) _ Nothing  = ""
+          (+++) a (Just b) = Data.Text.append a b
+          texts = [" of type ", " for ", " licenced under ", " written in ", " with "]
 
 
 -- Chooser, to allow filtering for License, etc.
 -- For now it works via Page-Redirect and the Recource-Handler do the work
 -- The list of what options are available is currently given as an argument
-chooser :: Text -> Text -> Text -> Text -> Text -> Widget
-chooser cat os license coding gui = do
+chooser :: SoftwareFilter -> Widget
+chooser f = do
     ll <- handlerToWidget $(genlist "License")
     cl <- handlerToWidget $(genlist "Coding")
     ol <- handlerToWidget $(genlist "Os")
@@ -107,23 +126,22 @@ chooser cat os license coding gui = do
 
 runquery
   :: (YesodPersist site, YesodPersistBackend site ~ SqlBackend) =>
-    Maybe Text -> Maybe Text -> Maybe Text -> Maybe Text -> Maybe Text
-      -> HandlerT site IO [Entity Project]
-runquery cat os license coding gui = runDB
+     SoftwareFilter -> HandlerT site IO [Entity Project]
+runquery f = runDB
     $ select $ distinct
     $ from $ \p -> do
-         $(gencheck "os"      "Os")
-         $(gencheck "cat"     "Cat")
-         $(gencheck "license" "License")
-         $(gencheck "coding"  "Coding")
-         $(gencheck "gui"     "Gui")
+         $(gencheck "Os")
+         $(gencheck "Cat")
+         $(gencheck "License")
+         $(gencheck "Coding")
+         $(gencheck "Gui")
          limit 50
          return p
 
 
 -- List all Software
 getHomeR :: Handler Html
-getHomeR = getFilterN "*" "*" "*" "*" "*"
+getHomeR = getFilterR ["*", "*", "*", "*", "*"]
 
 softwareWidget :: Key Project -> WidgetT Browser IO ()
 softwareWidget key = do
@@ -157,32 +175,31 @@ getSoftwareR software = do
 getSoftwareIdR :: Int -> Handler Html
 getSoftwareIdR = defaultLayout . softwareWidget . qidtokey
 
-getFilterN :: Text -> Text -> Text -> Text -> Text -> Handler Html
-getFilterN cat os license coding gui = do
-    results <- runquery (check cat) (check os) (check license) (check coding) (check gui)
+getFilterN :: SoftwareFilter -> Handler Html
+getFilterN f = do
+    results <- runquery f
     defaultLayout $ do
-      setTitle $ toHtml $ gentitle os license coding
+      setTitle $ toHtml $ gentitle f
       toWidget $(whamletFile "./templates/softwarelist.hamlet")
       toWidget $(luciusFile "./templates/softwarelist.lucius")
+
+getFilterR :: [Text] -> Handler Html
+getFilterR filter = getFilterN $ fmap check filter
     where
       check "*" = Nothing
       check s   = Just s
 
-getFilterR :: [Text] -> Handler Html
-getFilterR (cat:os:license:coding:gui:[]) = getFilterN cat os license coding gui
-getFilterR _ = notFound
-
 -- Get Software by License-Name
 getByLicenseR :: Text -> Handler Html
-getByLicenseR license = getFilterN "*" "*" license "*" "*"
+getByLicenseR license = getFilterR ["*", "*", license, "*", "*"]
 
 -- Get Software my Coding-Name
 getByCodingR :: Text -> Handler Html
-getByCodingR coding = getFilterN "*" "*" "*" coding "*" 
+getByCodingR coding = getFilterR ["*", "*", "*", coding, "*"]
 
 -- Get Software my Gui-Name
 getByGuiR :: Text -> Handler Html
-getByGuiR = getFilterN "*" "*" "*" "*" 
+getByGuiR gui = getFilterR ["*", "*", "*", "*", gui]
 
 getFaviconR :: Handler ()
 getFaviconR = sendFile "image/vnd.microsoft.icon" "favicon.ico"

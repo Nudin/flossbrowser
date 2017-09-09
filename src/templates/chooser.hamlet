@@ -3,29 +3,29 @@
         <select name="license" id="oschooser" onclick="filter()">
             <option>-- all --
             $forall name <- ol
-                    <option :(os == name):selected>
+                    <option :(os f == Just name):selected>
                           #{name}
     <label> License&#32
         <select name="license" id="licensechooser" onclick="filter()">
             <option>-- all --
             $forall name <- ll
-                    <option :(license == name):selected>
+                    <option :(license f == Just name):selected>
                           #{name}
     <label> Programing language&#32
         <select name="coding" id="codingchooser" onclick="filter()">
             <option>-- all --
             $forall name <- cl
-                      <option :(coding == name):selected>
+                    <option :(coding f == Just name):selected>
                           #{name}
     <label> Gui&#32
         <select name="gui" id="guichooser" onclick="filter()">
             <option>-- all --
             $forall name <- gl
-                      <option :(gui == name):selected>
+                    <option :(gui f == Just name):selected>
                           #{name}
     <label> Category&#32
         <select name="cat" id="catchooser" onclick="filter()">
             <option>-- all --
             $forall name <- tl
-                      <option :(cat == name):selected>
+                    <option :(cat f == Just name):selected>
                           #{name}
