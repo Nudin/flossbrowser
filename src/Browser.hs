@@ -1,14 +1,16 @@
-{-# LANGUAGE EmptyDataDecls             #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE GADTs                      #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE QuasiQuotes                #-}
-{-# LANGUAGE TemplateHaskell            #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE ViewPatterns               #-}
+{-# LANGUAGE   EmptyDataDecls
+             , FlexibleContexts
+             , GADTs
+             , GeneralizedNewtypeDeriving
+             , MultiParamTypeClasses
+             , OverloadedStrings
+             , QuasiQuotes
+             , TemplateHaskell
+             , TypeFamilies
+             , ViewPatterns #-}
 
+-- To avoid warning for unused yesod-generated resources
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 import           Floss.DB
 import           Genlists
@@ -33,7 +35,7 @@ import           Data.Configurator       as Conf
 import           Data.Configurator.Types as Conf
 import           Data.Maybe
 
-data Browser = Browser ConnectionPool
+newtype Browser    = Browser ConnectionPool
 newtype BrowserEnv = BrowserEnv { port :: Int }
 
 type BrowserT m = ReaderT BrowserEnv m
@@ -173,7 +175,7 @@ getHomeR = getFilterR ["*", "*", "*", "*", "*"]
 -- Show Details to one specified Software
 getSoftwareR :: Text -> Handler Html
 getSoftwareR software = do
-    projects <- runDB $ P.selectList [ ProjectName P.==. (Just software) ]  []
+    projects <- runDB $ P.selectList [ ProjectName P.==. Just software ]  []
     defaultLayout $ mconcat <$> traverse ( softwareWidget . entityKey ) projects
 
 -- Show Details to one specified Software
@@ -194,15 +196,15 @@ getFilterR f' = do
 
 -- Get Software by License-Name
 getByLicenseR :: Text -> Handler Html
-getByLicenseR license = getFilterR ["*", "*", license, "*", "*"]
+getByLicenseR l = getFilterR ["*", "*", l, "*", "*"]
 
 -- Get Software my Coding-Name
 getByCodingR :: Text -> Handler Html
-getByCodingR coding = getFilterR ["*", "*", "*", coding, "*"]
+getByCodingR c = getFilterR ["*", "*", "*", c, "*"]
 
 -- Get Software my Gui-Name
 getByGuiR :: Text -> Handler Html
-getByGuiR gui = getFilterR ["*", "*", "*", "*", gui]
+getByGuiR ui = getFilterR ["*", "*", "*", "*", ui]
 
 getFaviconR :: Handler ()
 getFaviconR = sendFile "image/vnd.microsoft.icon" "favicon.ico"
