@@ -88,11 +88,13 @@ http2https :: Text -> Text
 http2https = Data.Text.replace "http://" "https://"
 
 
+-- Save version of !!, returning a maybe
 (!!!) :: [a] -> Int -> Maybe a
 (!!!) a i = if Prelude.length a>i then Just (a !! i) else Nothing
 
 type SoftwareFilter =  [ Maybe Text ]
 
+-- Geatter functions for the SoftwareFilter
 cat     :: SoftwareFilter -> Maybe Text
 cat     f = join $ f !!! 0
 os      :: SoftwareFilter -> Maybe Text
@@ -130,6 +132,9 @@ chooser f = do
     toWidget $(juliusFile "./templates/chooser.julius")
     toWidget $(luciusFile "./templates/chooser.lucius")
 
+-- Run a query against the database to find all softwares matching
+-- the given filter-options, all filters are optional.
+-- To avoid boilerplate code, we generate the sub queries with Template Haskell
 runquery
   :: (YesodPersist site, YesodPersistBackend site ~ SqlBackend) =>
      SoftwareFilter -> HandlerT site IO [Entity Project]
@@ -144,7 +149,7 @@ runquery f = runDB
          limit 50
          return p
 
-
+-- Widget showing all the informations about one software.
 softwareWidget :: Key Project -> WidgetT Browser IO ()
 softwareWidget key = do
     projects <- handlerToWidget $ runDB
@@ -172,19 +177,22 @@ softwareWidget key = do
 getHomeR :: Handler Html
 getHomeR = getFilterR ["*", "*", "*", "*", "*"]
 
--- Show Details to one specified Software
+-- Show details to a specified Software by name
+-- Note: There can be more than one software with the exact same name,
+-- in this case we concatenate the widgets of all matches
 getSoftwareR :: Text -> Handler Html
 getSoftwareR software = do
     projects <- runDB $ P.selectList [ ProjectName P.==. Just software ]  []
     defaultLayout $ mconcat <$> traverse ( softwareWidget . entityKey ) projects
 
--- Show Details to one specified Software
+-- Show Details to one specified Software by Wikidata-ID
 getSoftwareIdR :: Int -> Handler Html
 getSoftwareIdR = defaultLayout . softwareWidget . qidtokey
 
+-- Show a list of software projects matching the chosen criteria
 getFilterR :: Texts -> Handler Html
-getFilterR f' = do
-    let f = fmap check f'
+getFilterR t = do
+    let f = fmap check t
     results <- runquery f
     defaultLayout $ do
         setTitle $ toHtml $ gentitle f
