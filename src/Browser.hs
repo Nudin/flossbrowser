@@ -11,29 +11,33 @@
 
 
 import           Floss.DB
-import Genlists
+import           Genlists
 
 import           Text.Hamlet
 import           Text.Julius
 import           Text.Lucius
-import           Yesod                        hiding ((==.), check)
+import           Yesod                   hiding (check, (==.))
 
-import qualified Data.Char                    as C
-import qualified Data.Text                    as T
-import           Data.Text
+import qualified Data.Char               as C
 import           Data.List
+import           Data.Text
+import qualified Data.Text               as T
 import           Database.Esqueleto
-import qualified Database.Persist             as P
-import qualified Database.Persist.Sqlite      as P
+import qualified Database.Persist        as P
+import qualified Database.Persist.Sqlite as P
 
 import           Control.Monad
-import           Control.Monad.Logger         (runStderrLoggingT)
+import           Control.Monad.Logger    (runStderrLoggingT)
 import           Control.Monad.Reader
+import           Data.Configurator       as Conf
+import           Data.Configurator.Types as Conf
 import           Data.Maybe
-import           Data.Configurator            as Conf
-import           Data.Configurator.Types      as Conf
 
 data Browser = Browser ConnectionPool
+newtype BrowserEnv = BrowserEnv { port :: Int }
+
+type BrowserT m = ReaderT BrowserEnv m
+type BrowserIO  = BrowserT IO
 
 instance Yesod Browser
 
@@ -139,10 +143,6 @@ runquery f = runDB
          return p
 
 
--- List all Software
-getHomeR :: Handler Html
-getHomeR = getFilterR ["*", "*", "*", "*", "*"]
-
 softwareWidget :: Key Project -> WidgetT Browser IO ()
 softwareWidget key = do
     projects <- handlerToWidget $ runDB
@@ -153,7 +153,8 @@ softwareWidget key = do
                 return p
     results <- handlerToWidget $ runDB
            $ select $ distinct
-           $ from $ \(p `InnerJoin` pl `InnerJoin` l `InnerJoin` pc `InnerJoin` c) -> do
+           $ from $ \(p `InnerJoin` pl `InnerJoin`
+                      l `InnerJoin` pc `InnerJoin` c) -> do
                 on $ p ^. ProjectId ==. pl ^. ProjectLicensePId
                 on $ p ^. ProjectId ==. pc ^. ProjectCodingPId
                 on $ l ^. LicenseId ==. pl ^. ProjectLicenseLId
@@ -165,6 +166,10 @@ softwareWidget key = do
     toWidget $(whamletFile "./templates/software.hamlet")
     toWidget $(luciusFile "./templates/software.lucius")
 
+-- List all Software
+getHomeR :: Handler Html
+getHomeR = getFilterR ["*", "*", "*", "*", "*"]
+
 -- Show Details to one specified Software
 getSoftwareR :: Text -> Handler Html
 getSoftwareR software = do
@@ -175,19 +180,17 @@ getSoftwareR software = do
 getSoftwareIdR :: Int -> Handler Html
 getSoftwareIdR = defaultLayout . softwareWidget . qidtokey
 
-getFilterN :: SoftwareFilter -> Handler Html
-getFilterN f = do
+getFilterR :: Texts -> Handler Html
+getFilterR f' = do
+    let f = fmap check f'
     results <- runquery f
     defaultLayout $ do
-      setTitle $ toHtml $ gentitle f
-      toWidget $(whamletFile "./templates/softwarelist.hamlet")
-      toWidget $(luciusFile "./templates/softwarelist.lucius")
-
-getFilterR :: [Text] -> Handler Html
-getFilterR filter = getFilterN $ fmap check filter
+        setTitle $ toHtml $ gentitle f
+        toWidget $(whamletFile "./templates/softwarelist.hamlet")
+        toWidget $(luciusFile "./templates/softwarelist.lucius")
     where
-      check "*" = Nothing
-      check s   = Just s
+        check "*" = Nothing
+        check s   = Just s
 
 -- Get Software by License-Name
 getByLicenseR :: Text -> Handler Html
@@ -204,10 +207,6 @@ getByGuiR gui = getFilterR ["*", "*", "*", "*", gui]
 getFaviconR :: Handler ()
 getFaviconR = sendFile "image/vnd.microsoft.icon" "favicon.ico"
 
-newtype BrowserEnv = BrowserEnv { port :: Int }
-
-type BrowserT m = ReaderT BrowserEnv m
-type BrowserIO  = BrowserT IO
 
 -- This application runs in a reader / IO transformer stack
 runBrowserT :: Monad m => BrowserEnv -> BrowserT m a -> m a
@@ -217,8 +216,8 @@ handleConfError :: Show t => t -> IO ()
 handleConfError e = print $ "Error reading config file: " ++ show e
 
 confSettings :: AutoConfig
-confSettings  = AutoConfig { interval = 10
-                           , onError  = handleConfError }
+confSettings  = AutoConfig { interval = 10,
+                             onError  = handleConfError }
 
 readConfig :: IO BrowserEnv
 readConfig = do
