@@ -30,6 +30,8 @@ import           Data.Foldable                as F
 import           Control.Monad.Logger         (runStderrLoggingT)
 import           Control.Monad.Reader
 import           Data.Maybe
+import           Data.Configurator            as Conf
+import           Data.Configurator.Types      as Conf
 
 data Browser = Browser ConnectionPool
 
@@ -208,22 +210,39 @@ getFaviconR = sendFile "image/vnd.microsoft.icon" "favicon.ico"
 
 newtype BrowserEnv = BrowserEnv { port :: Int }
 
--- This application runs in a reader / IO transformer stack
 type BrowserT m = ReaderT BrowserEnv m
 type BrowserIO  = BrowserT IO
 
+-- This application runs in a reader / IO transformer stack
 runBrowserT :: Monad m => BrowserEnv -> BrowserT m a -> m a
 runBrowserT = flip runReaderT
 
+handleConfError :: Show t => t -> IO ()
+handleConfError e = print $ "Error reading config file: " ++ show e
+
+confSettings :: AutoConfig
+confSettings  = AutoConfig { interval = 10
+                           , onError  = handleConfError }
+
+readConfig :: IO BrowserEnv
+readConfig = do
+    (conf, _) <- autoReload confSettings [Required "./flossrc"]
+    mbPort <- Conf.lookup conf "port" :: IO (Maybe Int)
+    let p = case mbPort of
+                (Just v) -> v
+                Nothing  -> 3000
+    return BrowserEnv { port = p }
+
 server :: BrowserIO ()
 server = do
-    e <- ask
-    let p = port e
+    env <- ask
+    let p = port env
     liftIO $ runStderrLoggingT $ P.withSqlitePool sqliteDBro 10 $
              \pool -> liftIO $ warp p $ Browser pool
     return ()
 
+
 main :: IO ()
 main = do
-    let be = BrowserEnv { port = 3000 }
+    be <- readConfig
     runBrowserT be server
