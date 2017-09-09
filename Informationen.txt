@@ -3,11 +3,12 @@ Teilnehmer:
     Fabian Dreer
 
 Prüfungstermin:
-    TODO: beliebig
+    Zeitlich, wenn möglich, nach 11:00h.
+    TODO: Datum beliebig
 
 Projekttitel: FLOSS-Browser
-    Eine Website, zum Suchen von Free, Libre und Open Source Software
-    basierend auf Daten von wikidata.org
+    Eine Website, zum Darstellen und Filtern von Free, Libre und Open Source Software
+    basierend auf Daten von wikidata.org mit lokalem Cache.
 
     Verwendete Themen aus der Vorlesung:
         Yesod
