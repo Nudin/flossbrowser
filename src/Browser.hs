@@ -85,7 +85,7 @@ header = do
 
 type SoftwareFilter =  [ Maybe Text ]
 
--- Geatter functions for the SoftwareFilter
+-- Getter functions for the SoftwareFilter
 cat     :: SoftwareFilter -> Maybe Text
 cat     f = join $ f !!! 0
 os      :: SoftwareFilter -> Maybe Text
@@ -110,8 +110,8 @@ gentitle f = "Flossbrowser: Software" `Data.Text.append`
 
 
 -- Chooser, to allow filtering for License, etc.
--- For now it works via Page-Redirect and the Recource-Handler do the work
--- The list of what options are available is currently given as an argument
+-- For now it works via Page-Redirect and the Recource-Handler does the work
+-- The list of available options is currently given as an argument
 chooser :: SoftwareFilter -> Widget
 chooser f = do
     ll <- handlerToWidget $(genlist "License")
@@ -197,11 +197,11 @@ getFilterR t = do
 getByLicenseR :: Text -> Handler Html
 getByLicenseR l = getFilterR ["*", "*", l, "*", "*"]
 
--- Get Software my Coding-Name
+-- Get Software by Coding-Name
 getByCodingR :: Text -> Handler Html
 getByCodingR c = getFilterR ["*", "*", "*", c, "*"]
 
--- Get Software my Gui-Name
+-- Get Software by Gui-Name
 getByGuiR :: Text -> Handler Html
 getByGuiR ui = getFilterR ["*", "*", "*", "*", ui]
 
