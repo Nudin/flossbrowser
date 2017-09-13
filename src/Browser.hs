@@ -28,7 +28,7 @@ import qualified Database.Persist        as P
 import qualified Database.Persist.Sqlite as P
 
 import           Control.Monad
-import           Control.Monad.Logger    (runStderrLoggingT)
+import           Control.Monad.Logger    (runStderrLoggingT, filterLogger)
 import           Control.Monad.Reader
 import           Data.Configurator       as Conf
 import           Data.Configurator.Types as Conf
@@ -233,7 +233,7 @@ server :: BrowserIO ()
 server = do
     env <- ask
     let p = port env
-    liftIO $ runStderrLoggingT $ P.withSqlitePool sqliteDBro 10 $
+    liftIO $ runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug ) $ P.withSqlitePool sqliteDBro 10 $
              \pool -> liftIO $ warp p $ Browser pool
     return ()
 
