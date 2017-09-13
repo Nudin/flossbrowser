@@ -6,3 +6,4 @@ src/Browser
 src/Main
 *test.sql*
 src/client_session_key.aes
+src/flossbrowser.sqlite*

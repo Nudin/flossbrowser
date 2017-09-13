@@ -21,6 +21,9 @@ clean:
 
 purge: clean
 	-rm $(shell find . -type f -executable)
+	-rm flossbrowser.sqlite-shm
+	-rm flossbrowser.sqlite-wal
+	-rm client_session_key.aes
 	-rm -r $(TMPDIRNAME)
 
 tmpdir:
