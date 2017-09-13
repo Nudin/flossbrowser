@@ -48,6 +48,20 @@ type BrowserIO  = BrowserT IO
 
 instance Yesod Browser where
   approot = ApprootMaster myApproot
+  cleanPath site s = do
+        if corrected == s
+            then Right $ dropprefix (Data.List.map dropDash s)
+            else Left $ dropprefix corrected
+      where
+        corrected = Data.List.filter (not . Data.Text.null) s
+        dropDash t
+            | Data.Text.all (== '-') t = Data.Text.drop 1 t
+            | otherwise = t
+        r = Data.Text.drop 1 $ myApproot site
+        l = Data.Text.length r
+        dropprefix l
+            | Data.List.take 1 l == [r] = Data.List.drop 1 l
+            | otherwise = l
 
 instance YesodPersist Browser where
     type YesodPersistBackend Browser = SqlBackend
