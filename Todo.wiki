@@ -1,0 +1,28 @@
+= Backend = 
+- [ ] insertMany_ ?
+- [ ] Database Exception
+- [ ] Split SPARQL-Query into 2
+- [ ] Kategorie & Co als Baum
+- [-] hsparql
+
+= Frontend =
+- [▂] Schlechte Performace
+	- [ ] Wechsel von Sqlite zu [[https://wikitech.wikimedia.org/wiki/Help:Toolforge/Database#User_databases|MariaDB]]
+	- [ ] Caching?
+	- [ ] DB-Index?
+- [ ] Lucius verschachteln
+- [▁] *prefix konfigurierbar*
+- [ ] View all Info
+- [ ] Nächste Seite
+- [ ] Suche
+- [ ] Beautiful CSS
+- [ ] Enhance JS
+	- [ ] Open Screenshots in "overlay"
+	- [ ] Fix chooser.lucius
+- [ ] * in URL in Chrome
+
+= Both/Other =
+- [ ] i18n
+- [ ] Better Name
+- [ ] Make Source Code public
+- [ ] Domain
