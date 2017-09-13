@@ -1,4 +1,10 @@
 <form action="#">
+    <label> Category&#32
+        <select name="cat" id="catchooser" onclick="filter()">
+            <option>-- all --
+            $forall name <- tl
+                    <option :(cat f == Just name):selected>
+                          #{name}
     <label> OS&#32
         <select name="license" id="oschooser" onclick="filter()">
             <option>-- all --
@@ -22,10 +28,4 @@
             <option>-- all --
             $forall name <- gl
                     <option :(gui f == Just name):selected>
-                          #{name}
-    <label> Category&#32
-        <select name="cat" id="catchooser" onclick="filter()">
-            <option>-- all --
-            $forall name <- tl
-                    <option :(cat f == Just name):selected>
                           #{name}

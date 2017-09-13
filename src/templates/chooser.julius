@@ -2,49 +2,27 @@ function encode(s) {
     return s.replace("/", "%2F");
 }
 
+function buildurl(s) {
+    if (s == "-- all --")
+        return "*/";
+    else
+        return (s + "/");
+}
+
 function filter() { 
     license = encode(document.getElementById("licensechooser").value);
     coding = encode(document.getElementById("codingchooser").value);
     os = encode(document.getElementById("oschooser").value);
     cat = encode(document.getElementById("catchooser").value);
     gui = encode(document.getElementById("guichooser").value);
-    newurl="/";
-    if(cat === "-- all --") {
-        newurl += "*/";
-    }
-    else {
-        newurl += cat + "/"
-    }
-    if(os === "-- all --") {
-        newurl += "*/";
-    }
-    else {
-        newurl += os + "/"
-    }
-
-    if(license === "-- all --") {
-        newurl += "*/";
-    }
-    else {
-        newurl += license + "/"
-    }
-
-    if(coding === "-- all --") {
-        newurl += "*/";
-    }
-    else {
-        newurl += coding + "/";
-    }
-
-    if(gui === "-- all --") {
-        newurl += "*/";
-    }
-    else {
-        newurl += gui + "/";
-    }
+    newurl="/" + buildurl(cat)
+               + buildurl(os)
+               + buildurl(license)
+               + buildurl(coding)
+               + buildurl(gui)
     oldurl = window.location.pathname.replace(/%2A/g, "*").replace("*/*/*/*/*", "") + "/";
-    newurl2 = newurl.replace(/%2A/g, "*").replace("*/*/*/*/*", "");
-    if ( newurl2 != oldurl ) {
+    newurl_normalized = newurl.replace(/%2A/g, "*").replace("*/*/*/*/*", "");
+    if ( newurl_normalized != oldurl ) {
         window.location.href = newurl;
     }
 }
