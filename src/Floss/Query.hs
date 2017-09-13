@@ -121,7 +121,7 @@ SELECT DISTINCT ?category ?categoryLabel WHERE {
     ?floss wdt:P31 ?category.
   }
 
-  OPTIONAL { ?cat rdfs:label ?catLabel filter (lang(?catLabel) = "en") .}
+  OPTIONAL { ?category rdfs:label ?categoryLabel filter (lang(?categoryLabel) = "en") .}
 } |]
 
 escapeQuery :: String -> String
