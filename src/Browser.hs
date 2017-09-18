@@ -233,8 +233,9 @@ server :: BrowserIO ()
 server = do
     env <- ask
     let p = port env
-    liftIO $ runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug ) $ P.withSqlitePool sqliteDBro 10 $
-             \pool -> liftIO $ warp p $ Browser pool
+    liftIO $ runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug )
+           $ P.withSqlitePool sqliteDBro 10
+           $ \pool -> liftIO $ warp p $ Browser pool
     return ()
 
 
