@@ -50,16 +50,16 @@ instance Yesod Browser where
   approot = ApprootMaster myApproot
   -- TODO: clean up this messy function
   cleanPath site s = do
-      if dropprefix corrected == dropprefix s
-           then Right $ dropprefix (Data.List.map dropDash s)
-           else Left  $ dropprefix corrected
+      if corrected == s'
+           then Right $ Data.List.map dropDash s'
+           else Left  $ corrected
       where
-        corrected = Data.List.filter (not . Data.Text.null) s
+        s' = dropprefix s
+        corrected = Data.List.filter (not . Data.Text.null) s'
         dropDash t
             | Data.Text.all (== '-') t = Data.Text.drop 1 t
             | otherwise = t
         r = Data.Text.drop 1 $ myApproot site
-        l = Data.Text.length r
         dropprefix l
             | Data.List.take 1 l == [r] = dropprefix $ Data.List.drop 1 l
             | l == [""] = []
