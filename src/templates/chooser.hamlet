@@ -1,30 +1,30 @@
 <form action="#">
     <label> Category&#32
-        <select name="cat" id="catchooser" onclick="filter()">
+        <select name="cat" id="catchooser" onchange="filter()">
             <option>-- all --
             $forall name <- tl
                     <option :(cat f == Just name):selected>
                           #{name}
     <label> OS&#32
-        <select name="license" id="oschooser" onclick="filter()">
+        <select name="license" id="oschooser" onchange="filter()">
             <option>-- all --
             $forall name <- ol
                     <option :(os f == Just name):selected>
                           #{name}
     <label> License&#32
-        <select name="license" id="licensechooser" onclick="filter()">
+        <select name="license" id="licensechooser" onchange="filter()">
             <option>-- all --
             $forall name <- ll
                     <option :(license f == Just name):selected>
                           #{name}
     <label> Programing language&#32
-        <select name="coding" id="codingchooser" onclick="filter()">
+        <select name="coding" id="codingchooser" onchange="filter()">
             <option>-- all --
             $forall name <- cl
                     <option :(coding f == Just name):selected>
                           #{name}
     <label> Gui&#32
-        <select name="gui" id="guichooser" onclick="filter()">
+        <select name="gui" id="guichooser" onchange="filter()">
             <option>-- all --
             $forall name <- gl
                     <option :(gui f == Just name):selected>
