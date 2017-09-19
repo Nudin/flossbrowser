@@ -68,6 +68,7 @@ instance Yesod Browser where
 instance YesodPersist Browser where
     type YesodPersistBackend Browser = SqlBackend
     runDB action = do
+        liftHandlerT $ addHeader "X-Accel-Expires" "3600"
         Browser _ pool <- getYesod
         runSqlPool action pool
 
