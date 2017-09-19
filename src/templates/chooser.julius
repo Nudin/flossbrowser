@@ -4,9 +4,9 @@ function encode(s) {
 
 function buildurl(s) {
     if (s == "-- all --")
-        return "*/";
+        return "/*";
     else
-        return (s + "/");
+        return ("/" + s);
 }
 
 function filter() { 
@@ -15,7 +15,7 @@ function filter() {
     os = encode(document.getElementById("oschooser").value);
     cat = encode(document.getElementById("catchooser").value);
     gui = encode(document.getElementById("guichooser").value);
-    newurl="/" + buildurl(cat)
+    newurl=@{FilterR []} + buildurl(cat)
                + buildurl(os)
                + buildurl(license)
                + buildurl(coding)

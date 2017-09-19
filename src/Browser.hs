@@ -34,13 +34,42 @@ import           Data.Configurator       as Conf
 import           Data.Configurator.Types as Conf
 import           Data.Maybe
 
-newtype Browser    = Browser ConnectionPool
-newtype BrowserEnv = BrowserEnv { port :: Int }
+data Browser = Browser {
+  myApproot      :: Text,
+  connectionpool :: ConnectionPool
+}
+data BrowserEnv = BrowserEnv {
+  port :: Int,
+  root :: Text
+}
 
 type BrowserT m = ReaderT BrowserEnv m
 type BrowserIO  = BrowserT IO
 
-instance Yesod Browser
+instance Yesod Browser where
+  approot = ApprootMaster myApproot
+  -- TODO: clean up this messy function
+  cleanPath site s = do
+      if corrected == s'
+           then Right $ Data.List.map dropDash s'
+           else Left  $ corrected
+      where
+        s' = dropprefix s
+        corrected = Data.List.filter (not . Data.Text.null) s'
+        dropDash t
+            | Data.Text.all (== '-') t = Data.Text.drop 1 t
+            | otherwise = t
+        r = Data.Text.drop 1 $ myApproot site
+        dropprefix l
+            | Data.List.take 1 l == [r] = dropprefix $ Data.List.drop 1 l
+            | l == [""] = []
+            | otherwise = l
+
+instance YesodPersist Browser where
+    type YesodPersistBackend Browser = SqlBackend
+    runDB action = do
+        Browser _ pool <- getYesod
+        runSqlPool action pool
 
 mkYesod
   "Browser"
@@ -56,12 +85,6 @@ mkYesod
 
     !/*Texts                 FilterR       GET
 |]
-
-instance YesodPersist Browser where
-    type YesodPersistBackend Browser = SqlBackend
-    runDB action = do
-        Browser pool <- getYesod
-        runSqlPool action pool
 
 -- Simple Header providing a Home-Link
 header :: Widget
@@ -227,14 +250,19 @@ readConfig = do
     let p = case mbPort of
                 (Just v) -> v
                 Nothing  -> 3000
-    return BrowserEnv { port = p }
+    mbRoot <- Conf.lookup conf "root" :: IO (Maybe Text)
+    let r = case mbRoot of
+                (Just v) -> v
+                Nothing  -> ""
+    return BrowserEnv { port = p, root = r }
 
 server :: BrowserIO ()
 server = do
     env <- ask
     let p = port env
+    let r = root env
     liftIO $ runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug ) $ P.withSqlitePool sqliteDBro 100 $
-             \pool -> liftIO $ warp p $ Browser pool
+             \pool -> liftIO $ warp p $ Browser r pool
     return ()
 
 
