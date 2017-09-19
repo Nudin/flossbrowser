@@ -15,7 +15,7 @@ function filter() {
     os = encode(document.getElementById("oschooser").value);
     cat = encode(document.getElementById("catchooser").value);
     gui = encode(document.getElementById("guichooser").value);
-    newurl="/foo" + buildurl(cat)
+    newurl=@{FilterR []} + buildurl(cat)
                + buildurl(os)
                + buildurl(license)
                + buildurl(coding)
