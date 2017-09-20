@@ -1,0 +1,7 @@
+body {
+    margin-left: 2em;
+}
+
+.notitle {
+    color: gray;
+}

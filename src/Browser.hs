@@ -187,6 +187,7 @@ softwareWidget key = do
     setTitle $ toHtml $ "Flossbrowser: " ++ software
     toWidget $(whamletFile "./templates/software.hamlet")
     toWidget $(luciusFile "./templates/software.lucius")
+    toWidget $(luciusFile "./templates/main.lucius")
 
 -- List all Software
 getHomeR :: Handler Html
@@ -213,6 +214,7 @@ getFilterR t = do
         setTitle $ toHtml $ gentitle f
         toWidget $(whamletFile "./templates/softwarelist.hamlet")
         toWidget $(luciusFile "./templates/softwarelist.lucius")
+        toWidget $(luciusFile "./templates/main.lucius")
     where
         check "*" = Nothing
         check s   = Just s

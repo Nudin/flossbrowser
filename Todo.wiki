@@ -10,7 +10,7 @@
 	- [ ] Migrate from Sqlite to [[https://wikitech.wikimedia.org/wiki/Help:Toolforge/Database#User_databases|MariaDB]]
 	- [ ] Caching?
 	- [ ] DB-Index?
-- [ ] Chain Lucius
+- [✓] Chain Lucius
 - [✓] conifgurable prefix
 - [ ] Display all info
 - [ ] Next-page-links
