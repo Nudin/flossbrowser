@@ -11,7 +11,7 @@
 	- [ ] Caching?
 	- [ ] DB-Index?
 - [ ] Chain Lucius
-- [▁] *conifgurable prefix*
+- [✓] conifgurable prefix
 - [ ] Display all info
 - [ ] Next-page-links
 - [ ] Search
@@ -20,12 +20,18 @@
 	- [ ] Open Screenshots in "overlay"
 	- [ ] Fix chooser.lucius
 - [ ] Display * in URL in Chrome
+- [✓] Normalize case of Text in select-fields & sort them
+- [✓] Stop printing out so much
+- [ ] Change SoftwareFilter to a traversable with record syntax
 
 = Both/Other =
 - [ ] i18n
 - [ ] Show Wikipedia-Links
 - [ ] Better Name
 - [ ] Make Source Code public
+- [ ] Announce to Wikidata-Community
 - [ ] Domain
 - [ ] Design favicon
 - [ ] Improve Makefile
+	- [ ] Fix names of targets
+- [ ] Enable Optimisation

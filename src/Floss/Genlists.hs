@@ -16,6 +16,7 @@ import Database.Esqueleto
 import Data.Char
 
 import Floss.DB
+import Floss.Str
 
 genlist :: String -> ExpQ
 genlist s = code
@@ -29,7 +30,7 @@ genlist s = code
              on $ l ^. $(conE tableId) ==. pl ^. $(conE crosstableId)
              orderBy [ asc (l ^. $(conE tableName)) ]
              return (l ^. $(conE tableName))
-      return $ catMaybes $ fmap unValue ol
+      return $ sort $ fmap normalizestr $ catMaybes $ fmap unValue ol
       |]
 
 gencheck :: String -> ExpQ
