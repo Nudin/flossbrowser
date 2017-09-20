@@ -19,15 +19,25 @@
         $maybe link <- (projectLink project)
             <li>
                 <a href="#{link}">Webseite
-        $with (licenses, codings) <- unzip results
+        $with (os, licenses, codings, gui) <-  results
+            <li> Operating System:&nbsp;
+                $maybe ol <- sequence $ nub $ fmap unValue os
+                  #{Data.Text.intercalate "; " ol}
+                $nothing
+                   Unknown!
             <li> License:&nbsp;
-                $maybe ll <- sequence $ nub $ fmap (licenseName . entityVal) licenses
+                $maybe ll <- sequence $ nub $  fmap unValue licenses
                   #{Data.Text.intercalate "; " ll}
                 $nothing
                    Unknown!
             <li> Programing language:&nbsp;
-                $maybe cl <- sequence $ nub $ fmap (codingName . entityVal) codings
+                $maybe cl <- sequence $ nub $  fmap unValue codings
                   #{Data.Text.intercalate "; " cl}
+                $nothing
+                   Unknown!
+            <li> Gui-Toolkit:&nbsp;
+                $maybe gl <- sequence $ nub $  fmap unValue gui
+                  #{Data.Text.intercalate "; " gl}
                 $nothing
                    Unknown!
         $maybe vers <- projectVersion project

@@ -33,6 +33,21 @@ genlist s = code
       return $ sort $ fmap normalizestr $ catMaybes $ fmap unValue ol
       |]
 
+queryXTable :: String -> ExpQ
+queryXTable s = code
+  where
+    tableId      = mkName $ s ++ "Id"
+    crosstableId = mkName $ "Project" ++ s ++ "XId"
+    crosstablePId = mkName $ "Project" ++ s ++ "PId"
+    tableName    = mkName $ s ++ "Name"
+    code = [| runDB
+           $ select $ distinct
+           $ from $ \(po `InnerJoin` o) -> do
+                on $ o ^. $(conE tableId)      ==. po ^. $(conE crosstableId)
+                where_ ( po ^. $(conE crosstablePId) ==. val key)
+                return (o ^. $(conE tableName))
+            |]
+
 gencheck :: String -> ExpQ
 gencheck t = code
   where

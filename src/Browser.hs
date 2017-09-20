@@ -201,16 +201,12 @@ softwareWidget key = do
                 where_ ( p ^. ProjectId ==. val key )
                 limit 1
                 return p
-    results <- handlerToWidget $ runDB
-           $ select $ distinct
-           $ from $ \(p `InnerJoin` pl `InnerJoin`
-                      l `InnerJoin` pc `InnerJoin` c) -> do
-                on $ p ^. ProjectId ==. pl ^. ProjectLicensePId
-                on $ p ^. ProjectId ==. pc ^. ProjectCodingPId
-                on $ l ^. LicenseId ==. pl ^. ProjectLicenseXId
-                on $ c ^. CodingId  ==. pc ^. ProjectCodingXId
-                where_ ( p ^. ProjectId ==. val key )
-                return (l, c)
+    results <- handlerToWidget $ do
+      o <- $(queryXTable "Os")
+      l <- $(queryXTable "License")
+      c <- $(queryXTable "Coding")
+      g <- $(queryXTable "Gui")
+      return (o, l, c, g)
     let software = "Q" ++ show (fromSqlKey key)
     setTitle $ toHtml $ "Flossbrowser: " ++ software
     toWidget $(whamletFile "./templates/software.hamlet")
