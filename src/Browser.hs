@@ -203,7 +203,10 @@ softwareWidget key = do
       c <- $(queryXTable "Coding")
       g <- $(queryXTable "Gui")
       return (listall o, listall l, listall c, listall g)
-    setTitle $ toHtml $ "Flossbrowser: " ++ show wikidataid
+    let title = case join $ fmap projectName maybeproject of
+                  Just t -> unpack t
+                  Nothing -> "Q" ++ show wikidataid
+    setTitle $ toHtml $ "Flossbrowser: " ++ title
     toWidget $(whamletFile "./templates/software.hamlet")
     toWidget $(luciusFile "./templates/software.lucius")
     toWidget $(luciusFile "./templates/main.lucius")
