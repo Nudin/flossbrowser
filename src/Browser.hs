@@ -20,6 +20,7 @@ import           Text.Hamlet
 import           Text.Julius
 import           Text.Lucius
 import           Yesod                   hiding (check, (==.))
+import           Yesod.Static
 
 import           Data.List
 import           Data.Text
@@ -34,9 +35,12 @@ import           Data.Configurator       as Conf
 import           Data.Configurator.Types as Conf
 import           Data.Maybe
 
+staticFiles "static"
+
 data Browser = Browser {
   myApproot      :: Text,
-  connectionpool :: ConnectionPool
+  connectionpool :: ConnectionPool,
+  getStatic      :: Static
 }
 data BrowserEnv = BrowserEnv {
   port :: Int,
@@ -69,7 +73,7 @@ instance YesodPersist Browser where
     type YesodPersistBackend Browser = SqlBackend
     runDB action = do
         liftHandlerT $ addHeader "X-Accel-Expires" "3600"
-        Browser _ pool <- getYesod
+        Browser _ pool _ <- getYesod
         runSqlPool action pool
 
 mkYesod
@@ -79,6 +83,7 @@ mkYesod
     /software/#Text          SoftwareR     GET
     /softwarebyid/#Int       SoftwareIdR   GET
 
+    /static                  StaticR       Static getStatic
     /favicon.ico             FaviconR      GET
 
     /bylicense/#Text         ByLicenseR    GET
@@ -188,6 +193,12 @@ softwareWidget key = do
     toWidget $(whamletFile "./templates/software.hamlet")
     toWidget $(luciusFile "./templates/software.lucius")
     toWidget $(luciusFile "./templates/main.lucius")
+    addStylesheet $ StaticR css_lightbox_min_css
+    addScript $ StaticR js_lightbox_min_js
+    toWidget [julius|
+      var lightbox = new Lightbox();
+      lightbox.load();
+      |]
 
 -- List all Software
 getHomeR :: Handler Html
@@ -262,11 +273,12 @@ readConfig = do
 server :: BrowserIO ()
 server = do
     env <- ask
+    static@(Static settings) <- liftIO $ static "static"
     let p = port env
     let r = root env
     liftIO $ runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug )
            $ P.withSqlitePool sqliteDBro 100
-           $ \pool -> liftIO $ warp p $ Browser r pool
+           $ \pool -> liftIO $ warp p $ Browser r pool static
     return ()
 
 

@@ -40,5 +40,5 @@ $forall Entity projectid project <- projects
           <a href="https://tools.wmflabs.org/reasonator/?q=Q#{wikidataid}">Wikidata Reasonator</a>
 
     $maybe pic <- projectImg project
-          <a href="#{http2https pic}">
+          <a href="#{http2https pic}" data-jslghtbx="#{http2https pic}">
               <img .picture src="#{Data.Text.append (http2https pic) "?width=120"}">
