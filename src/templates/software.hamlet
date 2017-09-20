@@ -2,8 +2,7 @@
 
 
 <div .content>
-  $forall Entity projectid project <- projects
-    $with wikidataid <- fromSqlKey projectid
+  $maybe project <- maybeproject
       $maybe pic <- projectLogo project
           <img .logo src="#{Data.Text.append (http2https pic) "?width=200"}"/>
 
@@ -19,27 +18,15 @@
         $maybe link <- (projectLink project)
             <li>
                 <a href="#{link}">Webseite
-        $with (os, licenses, codings, gui) <-  results
+        $with (os, licenses, codings, guis) <-  results
             <li> Operating System:&nbsp;
-                $maybe ol <- sequence $ nub $ fmap unValue os
-                  #{Data.Text.intercalate "; " ol}
-                $nothing
-                   Unknown!
+                  #{os}
             <li> License:&nbsp;
-                $maybe ll <- sequence $ nub $  fmap unValue licenses
-                  #{Data.Text.intercalate "; " ll}
-                $nothing
-                   Unknown!
+                  #{licenses}
             <li> Programing language:&nbsp;
-                $maybe cl <- sequence $ nub $  fmap unValue codings
-                  #{Data.Text.intercalate "; " cl}
-                $nothing
-                   Unknown!
+                  #{codings}
             <li> Gui-Toolkit:&nbsp;
-                $maybe gl <- sequence $ nub $  fmap unValue gui
-                  #{Data.Text.intercalate "; " gl}
-                $nothing
-                   Unknown!
+                  #{guis}
         $maybe vers <- projectVersion project
             <li> Current Version:&nbsp;
                 #{vers}

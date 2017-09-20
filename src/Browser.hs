@@ -195,20 +195,15 @@ runquery f = runDB
 -- Widget showing all the informations about one software.
 softwareWidget :: Key Project -> WidgetT Browser IO ()
 softwareWidget key = do
-    projects <- handlerToWidget $ runDB
-           $ select $ distinct
-           $ from $ \p -> do
-                where_ ( p ^. ProjectId ==. val key )
-                limit 1
-                return p
+    let wikidataid = fromSqlKey key
+    maybeproject <- handlerToWidget $ runDB $ get key
     results <- handlerToWidget $ do
       o <- $(queryXTable "Os")
       l <- $(queryXTable "License")
       c <- $(queryXTable "Coding")
       g <- $(queryXTable "Gui")
-      return (o, l, c, g)
-    let software = "Q" ++ show (fromSqlKey key)
-    setTitle $ toHtml $ "Flossbrowser: " ++ software
+      return (listall o, listall l, listall c, listall g)
+    setTitle $ toHtml $ "Flossbrowser: " ++ show wikidataid
     toWidget $(whamletFile "./templates/software.hamlet")
     toWidget $(luciusFile "./templates/software.lucius")
     toWidget $(luciusFile "./templates/main.lucius")
@@ -218,6 +213,10 @@ softwareWidget key = do
       var lightbox = new Lightbox();
       lightbox.load();
       |]
+    where
+        listall a = case sequence $ nub $ fmap unValue a of
+                Just l  -> Data.Text.intercalate "; " l
+                Nothing -> "Unknown!"
 
 -- List all Software
 getHomeR :: Handler Html
