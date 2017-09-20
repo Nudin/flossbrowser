@@ -98,13 +98,36 @@ header = do
     toWidget
       [lucius|
           .header {
-              text-align: center
+              text-align: center;
+              height: 2em;
           }
       |]
     toWidget
       [hamlet|
         <div class="header">
           <a href=@{HomeR}>Home
+      |]
+footer :: Widget
+footer = do
+    toWidget
+      [lucius|
+          .footer {
+              text-align: center;
+              width: 100%;
+              background-color: lightgrey;
+              height: 2em;
+              font-weight: 900;
+          }
+          .footer p {
+              margin-top: auto;
+              margin-bottom: auto;
+          }
+      |]
+    toWidget
+      [hamlet|
+        <div class="footer">
+          <p>Flossbrowser is still alpha! URLs will change! You can help!
+            &nbsp;→&nbsp;<a href=@{HomeR}>Code
       |]
 
 

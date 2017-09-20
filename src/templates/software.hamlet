@@ -1,44 +1,47 @@
 ^{header}
 
 
-$forall Entity projectid project <- projects
-  $with wikidataid <- fromSqlKey projectid
-    $maybe pic <- projectLogo project
-        <img .logo src="#{Data.Text.append (http2https pic) "?width=200"}"/>
+<div .content>
+  $forall Entity projectid project <- projects
+    $with wikidataid <- fromSqlKey projectid
+      $maybe pic <- projectLogo project
+          <img .logo src="#{Data.Text.append (http2https pic) "?width=200"}"/>
 
-    $maybe title <- projectName project
-        <h1>#{title}
-    $nothing
-        <h1 .notitle>
-            Q#{wikidataid}
+      $maybe title <- projectName project
+          <h1>#{title}
+      $nothing
+          <h1 .notitle>
+              Q#{wikidataid}
 
-    $maybe desc <- projectDescription project
-          <p>#{normalizestr $ desc}
-    <ul>
-      $maybe link <- (projectLink project)
-          <li>
-              <a href="#{link}">Webseite
-      $with (licenses, codings) <- unzip results
-          <li> License:&nbsp;
-              $maybe ll <- sequence $ nub $ fmap (licenseName . entityVal) licenses
-                #{Data.Text.intercalate "; " ll}
-              $nothing
-                 Unknown!
-          <li> Programing language:&nbsp;
-              $maybe cl <- sequence $ nub $ fmap (codingName . entityVal) codings
-                #{Data.Text.intercalate "; " cl}
-              $nothing
-                 Unknown!
-      $maybe vers <- projectVersion project
-          <li> Current Version:&nbsp;
-              #{vers}
-      $maybe start <- projectStart project
-          <li> First release:&nbsp;
-              #{show start}
-      <li> Link:&nbsp;
-          <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata</a>,
-          <a href="https://tools.wmflabs.org/reasonator/?q=Q#{wikidataid}">Wikidata Reasonator</a>
+      $maybe desc <- projectDescription project
+            <p>#{normalizestr $ desc}
+      <ul>
+        $maybe link <- (projectLink project)
+            <li>
+                <a href="#{link}">Webseite
+        $with (licenses, codings) <- unzip results
+            <li> License:&nbsp;
+                $maybe ll <- sequence $ nub $ fmap (licenseName . entityVal) licenses
+                  #{Data.Text.intercalate "; " ll}
+                $nothing
+                   Unknown!
+            <li> Programing language:&nbsp;
+                $maybe cl <- sequence $ nub $ fmap (codingName . entityVal) codings
+                  #{Data.Text.intercalate "; " cl}
+                $nothing
+                   Unknown!
+        $maybe vers <- projectVersion project
+            <li> Current Version:&nbsp;
+                #{vers}
+        $maybe start <- projectStart project
+            <li> First release:&nbsp;
+                #{show start}
+        <li> Link:&nbsp;
+            <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata</a>,
+            <a href="https://tools.wmflabs.org/reasonator/?q=Q#{wikidataid}">Wikidata Reasonator</a>
 
-    $maybe pic <- projectImg project
-          <a href="#{http2https pic}" data-jslghtbx="#{http2https pic}">
-              <img .picture src="#{Data.Text.append (http2https pic) "?width=120"}">
+      $maybe pic <- projectImg project
+            <a href="#{http2https pic}" data-jslghtbx="#{http2https pic}">
+                <img .picture src="#{Data.Text.append (http2https pic) "?width=120"}">
+
+^{footer}

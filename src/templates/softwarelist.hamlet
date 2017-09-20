@@ -1,33 +1,36 @@
 ^{header}
 
-<h1>Floss-Browser
-<p .subheader>Find Free- Libre- and OpenSource- Software
+<div .content>
+    <h1>Floss-Browser
+    <p .subheader>Find Free- Libre- and OpenSource- Software
 
-^{chooser f}
+    ^{chooser f}
 
-$if L.length results > 0
-    <h2> Projects matching your criteria:
-    $forall Entity projectid project <- results
-        <div class="software">
-            $maybe pic <- projectLogo project
-                <div .logocontainer>
-                    <img .logo src="#{Data.Text.append (http2https pic) "?width=100"}"/>
-            $with wikidataid <- fromSqlKey projectid
-                $maybe name <- projectName project
-                    <h3>
-                        <a href=@{SoftwareR name}>#{name}
-                $nothing
-                    <h3 class="notitle">
-                        <a href=@{SoftwareIdR $ fromIntegral $ wikidataid}>Q#{wikidataid}
+    $if L.length results > 0
+        <h2> Projects matching your criteria:
+        $forall Entity projectid project <- results
+            <div class="software">
+                $maybe pic <- projectLogo project
+                    <div .logocontainer>
+                        <img .logo src="#{Data.Text.append (http2https pic) "?width=100"}"/>
+                $with wikidataid <- fromSqlKey projectid
+                    $maybe name <- projectName project
+                        <h3>
+                            <a href=@{SoftwareR name}>#{name}
+                    $nothing
+                        <h3 class="notitle">
+                            <a href=@{SoftwareIdR $ fromIntegral $ wikidataid}>Q#{wikidataid}
 
-                <p>
-                    $maybe desc <- projectDescription project
-                           #{normalizestr $ desc}
-                <ul>
-                    $maybe link <- (projectLink project)
+                    <p>
+                        $maybe desc <- projectDescription project
+                               #{normalizestr $ desc}
+                    <ul>
+                        $maybe link <- (projectLink project)
+                            <li>
+                                <a href="#{link}">Webseite
                         <li>
-                            <a href="#{link}">Webseite
-                    <li>
-                        <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata
-$else
-    <h2> No Projects matching your criteria found
+                            <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata
+    $else
+        <h2> No Projects matching your criteria found
+
+^{footer}
