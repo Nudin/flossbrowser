@@ -22,7 +22,7 @@ import           Text.Lucius
 import           Yesod                   hiding (check, (==.))
 import           Yesod.Static
 
-import           Data.List
+import           Data.List               as L
 import           Data.Text
 import           Database.Esqueleto
 import qualified Database.Persist        as P
@@ -55,17 +55,17 @@ instance Yesod Browser where
   -- TODO: clean up this messy function
   cleanPath site s = do
       if corrected == s'
-           then Right $ Data.List.map dropDash s'
+           then Right $ L.map dropDash s'
            else Left  $ corrected
       where
         s' = dropprefix s
-        corrected = Data.List.filter (not . Data.Text.null) s'
+        corrected = L.filter (not . Data.Text.null) s'
         dropDash t
             | Data.Text.all (== '-') t = Data.Text.drop 1 t
             | otherwise = t
         r = Data.Text.drop 1 $ myApproot site
         dropprefix l
-            | Data.List.take 1 l == [r] = dropprefix $ Data.List.drop 1 l
+            | L.take 1 l == [r] = dropprefix $ L.drop 1 l
             | l == [""] = []
             | otherwise = l
 
@@ -130,7 +130,7 @@ gui     f = join $ f !!! 4
 -- Generate a nice Title for the page
 gentitle :: SoftwareFilter -> Text
 gentitle f = "Flossbrowser: Software" `Data.Text.append`
-    Data.Text.concat (Data.List.zipWith (+++) texts f)
+    Data.Text.concat (L.zipWith (+++) texts f)
         where
           (+++) :: Text -> Maybe Text -> Text
           (+++) _ Nothing  = ""
