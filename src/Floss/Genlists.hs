@@ -48,7 +48,7 @@ gencheck t = code
                subList_select ( distinct $ from $
                  \(o `InnerJoin` po) -> do
                    on     $ o  ^. $(conE tableId)   ==. po ^. $(conE crosstableId)
-                   where_ $ o  ^. $(conE tableName) ==. val (Just _filter)
+                   where_ $ lower_ (o  ^. $(conE tableName)) ==. lower_ ( val (Just _filter) )
                    return $ po ^. $(conE crosstablePId)
                    )
            Nothing -> return ()
