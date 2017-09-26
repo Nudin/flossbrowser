@@ -103,22 +103,23 @@ queryCat = [str|
 SELECT DISTINCT ?category ?categoryLabel WHERE {
   {
    ?floss p:P31/ps:P31/wdt:P279* wd:Q506883.
+   ?floss wdt:P31 ?category.
   } Union {
    ?floss p:P31/ps:P31/wdt:P279* wd:Q341.
+   ?floss wdt:P31 ?category.
   } Union {
    ?floss p:P31/ps:P31/wdt:P279* wd:Q1130645.
+   ?floss wdt:P31 ?category.
   } Union {
+   ?floss wdt:P31 ?category.
    ?floss p:P31/ps:P31/wdt:P279* wd:Q19652.
    ?floss p:P31/ps:P31/wdt:P279* wd:Q7397.
   } Union {
+   ?floss wdt:P31 ?category.
     ?floss p:P31/ps:P31/wdt:P279* wd:Q7397.
     ?floss wdt:P275 ?licens.
     ?licens p:P31/ps:P31/(wdt:P31|wdt:P279)* ?kind.
     VALUES ?kind { wd:Q196294 wd:Q1156659 }.
-  }
-
-  OPTIONAL {
-    ?floss wdt:P31 ?category.
   }
 
   OPTIONAL { ?category rdfs:label ?categoryLabel filter (lang(?categoryLabel) = "en") .}
