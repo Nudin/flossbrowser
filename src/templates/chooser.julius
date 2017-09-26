@@ -26,3 +26,9 @@ function filter() {
         window.location.href = newurl;
     }
 }
+
+function dosearch() {
+    searchstr = encode(document.getElementById("search").value);
+    newurl=@{FilterR []} + "/search/" + searchstr;
+    window.location.href = newurl;
+}

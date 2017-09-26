@@ -19,7 +19,7 @@ import           Floss.Str
 import           Text.Hamlet
 import           Text.Julius
 import           Text.Lucius
-import           Yesod                   hiding (check, (==.))
+import           Yesod                   hiding (check, (==.), (||.))
 import           Yesod.Static
 
 import           Data.List               as L
@@ -88,6 +88,8 @@ mkYesod
 
     /bylicense/#Text         ByLicenseR    GET
     /bycoding/#Text          ByCodingR     GET
+
+    /search/#Text            SearchR       GET
 
     !/*Texts                 FilterR       GET
 |]
@@ -250,6 +252,24 @@ getFilterR t = do
     where
         check "*" = Nothing
         check s   = Just s
+
+-- Show a list of software projects matching the searchtext
+getSearchR :: Text -> Handler Html
+getSearchR t = do
+    let f = [Just "*", Just "*", Just "*", Just "*", Just "*"]
+    let s = Just $ "%" `Data.Text.append` t `Data.Text.append` "%"
+    results <- runDB
+      $ select $ distinct
+      $ from $ \p -> do
+        where_ $ ( ( p ^. ProjectDescription ) `like` ( val s )) ||.
+          ( ( p ^. ProjectName ) `like` ( val s ) )
+        limit 50
+        return p
+    defaultLayout $ do
+        setTitle $ toHtml $ "Search for" `Data.Text.append` t
+        toWidget $(whamletFile "./templates/softwarelist.hamlet")
+        toWidget $(luciusFile "./templates/softwarelist.lucius")
+        toWidget $(luciusFile "./templates/main.lucius")
 
 -- Get Software by License-Name
 getByLicenseR :: Text -> Handler Html

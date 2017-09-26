@@ -29,3 +29,6 @@
             $forall name <- gl
                     <option :(gui f == Just name):selected>
                           #{name}
+
+<input type="text" #search>
+<button type="button" onclick="dosearch()">Search
