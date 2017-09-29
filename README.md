@@ -11,6 +11,19 @@ service, the backend is planed to be started regularly by a cronjob.
 The service is already deployed at:
     https://tools.wmflabs.org/flossbrowser
 
+### Dependencies
+    The following haskell-packages are needed for compilation:
+      yesod
+      yesod-static
+      yesod-persistent
+      persistent-sqlite
+      esqueleto
+      http-client
+      http-client-tls
+      network-uri
+      configurator
+    You can install them with cabal or your package-manager.
+
 ### Compilation
     Change into the `src` folder and run `make`.
 
