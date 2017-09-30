@@ -5,12 +5,12 @@ SRC=CreateDB.hs
 .PHONY: purge
 .PHONY: all
 
-all: tmpdir main browser
+all: tmpdir CreateDB Browser
 
-browser: Browser.hs
+Browser: Browser.hs
 	$(CC) $(FLAGS) Browser.hs
 
-main: $(SRC)
+CreateDB: $(SRC)
 	$(CC) $(FLAGS) $(SRC)
 
 clean:
