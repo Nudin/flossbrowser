@@ -5,10 +5,11 @@ set -e
 cd src
 
 function show_help() {
-  echo -e "./upload -[bfdh?]\n"
+  echo -e "./upload -[bfdrh?]\n"
   echo -e "\t-b\tUpload backend"
   echo -e "\t-f\tUpload frontend"
   echo -e "\t-d\tUpload database"
+  echo -e "\t-r\tCreate database"
   echo -e "\t-h -?\tShow this help"
 }
 
@@ -17,17 +18,23 @@ if [[ $# -eq 0 ]]; then
   exit
 fi
 
-while getopts "h?bfd" opt; do
+backend=false
+frontend=false
+database=false
+run=false
+while getopts "h?bfdr" opt; do
     case "$opt" in
     h|\?)
         show_help
         exit 0
         ;;
-    b)  backend=1
+    b)  backend=true
         ;;
-    f)  frontend=1
+    f)  frontend=true
         ;;
-    d)  database=1
+    d)  database=true
+        ;;
+    r)  run=true
         ;;
     esac
 done
@@ -51,7 +58,10 @@ if $backend; then
   scp CreateDB ${server}:${path}
 fi
 
-if $database; then
+if $run; then
   ./CreateDB
+fi
+
+if $database; then
   scp flossbrowser.sqlite ${server}:${path}
 fi
