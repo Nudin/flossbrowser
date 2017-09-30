@@ -261,8 +261,19 @@ getSearchR t = do
     results <- runDB
       $ select $ distinct
       $ from $ \p -> do
-        where_ $ ( ( p ^. ProjectDescription ) `like` ( val s )) ||.
-          ( ( p ^. ProjectName ) `like` ( val s ) )
+        where_ $
+          ( p ^. ProjectDescription `like` val s ) ||.
+          ( p ^. ProjectName `like` val s ) ||.
+          ( p ^. ProjectId `in_` (
+            subList_select $ from $ \pc -> do
+              where_ $ pc ^. ProjectCatXId `in_` (
+                subList_select $ from $ \c -> do
+                  where_ $ c ^. CatName `like` val s
+                  return $ c ^. CatId
+                                                 )
+              return $ pc ^. ProjectCatPId
+            )
+          )
         limit 50
         return p
     defaultLayout $ do
