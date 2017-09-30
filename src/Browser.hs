@@ -200,11 +200,13 @@ softwareWidget key = do
     let wikidataid = fromSqlKey key
     maybeproject <- handlerToWidget $ runDB $ get key
     results <- handlerToWidget $ do
+      t <- $(queryXTable "Cat")
       o <- $(queryXTable "Os")
       l <- $(queryXTable "License")
       c <- $(queryXTable "Coding")
       g <- $(queryXTable "Gui")
-      return (listall o, listall l, listall c, listall g)
+      d <- $(queryXTable "Dev")
+      return (listall t, listall o, listall l, listall c, listall g, listall d)
     let title = case join $ fmap projectName maybeproject of
                   Just t -> unpack t
                   Nothing -> "Q" ++ show wikidataid
@@ -220,8 +222,9 @@ softwareWidget key = do
       |]
     where
         listall a = case sequence $ nub $ fmap unValue a of
-                Just l  -> Data.Text.intercalate "; " l
+                Just [] -> "Unknown or none!"
                 Nothing -> "Unknown!"
+                Just l  -> Data.Text.intercalate "; " l
 
 -- List all Software
 getHomeR :: Handler Html

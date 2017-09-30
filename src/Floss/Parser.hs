@@ -24,7 +24,8 @@ data Software = Software {
   coding      :: Maybe WikidataItemID,
   license     :: Maybe WikidataItemID,
   gui         :: Maybe WikidataItemID,
-  cat         :: Maybe WikidataItemID
+  cat         :: Maybe WikidataItemID,
+  dev         :: Maybe WikidataItemID
   } deriving (Show, Generic)
 
 data ItemLabel = ItemLabel {
@@ -78,12 +79,15 @@ instance FromJSON Software where
                     <*> parseMaybeText "img" o
                     <*> parseMaybeText "version" o
                     <*> parseMaybeDay  "start" o
+                    <*> parseMaybeText "repo" o
+                    <*> parseMaybeText "fsd" o
                      )
                  <*> parseMaybeId "os" o
                  <*> parseMaybeId "language" o
                  <*> parseMaybeId "license" o
                  <*> parseMaybeId "gui" o
                  <*> parseMaybeId "cat" o
+                 <*> parseMaybeId "dev" o
     parseJSON _ = mzero
 
 instance FromJSON ItemLabel where
@@ -92,6 +96,7 @@ instance FromJSON ItemLabel where
         parseIDLabel ItemLabel "language" <|>
         parseIDLabel ItemLabel "os" <|>
         parseIDLabel ItemLabel "gui" <|> 
+        parseIDLabel ItemLabel "dev" <|> 
         parseIDLabel ItemLabel "category"
       where
         parseIDLabel c s =

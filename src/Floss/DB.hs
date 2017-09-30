@@ -36,6 +36,8 @@ Project
     img  URL Maybe
     version Text Maybe
     start Day Maybe
+    repo URL Maybe
+    fsd Text Maybe
     deriving Show
 Os
     name Text Maybe
@@ -50,6 +52,9 @@ Gui
     name Text Maybe
     deriving Show
 Cat
+    name Text Maybe
+    deriving Show
+Dev
     name Text Maybe
     deriving Show
 ProjectOs
@@ -71,6 +76,10 @@ ProjectGui
 ProjectCat
     pId ProjectId
     xId CatId
+    deriving Show
+ProjectDev
+    pId ProjectId
+    xId DevId
     deriving Show
 |]
 

@@ -13,3 +13,8 @@ li {
     margin-left: 2em;
     margin-top: 1em;
 }
+
+.repo {
+    background: #DDD;
+    padding: 0.1em;
+}

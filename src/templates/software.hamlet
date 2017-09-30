@@ -18,24 +18,33 @@
         $maybe link <- (projectLink project)
             <li>
                 <a href="#{link}">Webseite
-        $with (os, licenses, codings, guis) <-  results
-            <li> Operating System:&nbsp;
+        $with (cats, os, licenses, codings, guis, devs) <-  results
+            <li> <b>Operating System</b>:&nbsp;
                   #{os}
-            <li> License:&nbsp;
+            <li> <b>License</b>:&nbsp;
                   #{licenses}
-            <li> Programing language:&nbsp;
+            <li> <b>Programing language</b>:&nbsp;
                   #{codings}
-            <li> Gui-Toolkit:&nbsp;
+            <li> <b>Gui-Toolkit</b>:&nbsp;
                   #{guis}
+            <li> <b>Developers</b>:&nbsp;
+                  #{devs}
+            <li> <b>Category</b>:&nbsp;
+                  #{cats}
         $maybe vers <- projectVersion project
-            <li> Current Version:&nbsp;
+            <li> <b>Current Version</b>:&nbsp;
                 #{vers}
         $maybe start <- projectStart project
-            <li> First release:&nbsp;
+            <li> <b>First release</b>:&nbsp;
                 #{show start}
-        <li> Link:&nbsp;
-            <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata</a>,
-            <a href="https://tools.wmflabs.org/reasonator/?q=Q#{wikidataid}">Wikidata Reasonator</a>
+        $maybe repo <- projectRepo project
+            <li> <b>Source code repo</b>:&nbsp;
+                <span .repo>#{repo}
+        <li> <b>Link</b>:&nbsp;
+            <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata,
+            <a href="https://tools.wmflabs.org/reasonator/?q=Q#{wikidataid}">Wikidata Reasonator
+            $maybe fsd <- projectFsd project
+              <a href="https://directory.fsf.org/wiki/#{fsd}">Free Software Directory
 
       $maybe pic <- projectImg project
             <a href="#{http2https pic}" data-jslghtbx="#{http2https pic}">

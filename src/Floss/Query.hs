@@ -13,7 +13,8 @@ module Floss.Query(
     queryCodings,
     queryOs,
     queryGui,
-    queryCat
+    queryCat,
+    queryDev
 ) where
 
 
@@ -33,8 +34,8 @@ url = "https://query.wikidata.org/sparql?format=json&query="
 query :: String
 query = [str|
 SELECT DISTINCT ?floss ?description ?name
-                ?language ?license ?os ?cat ?gui
-                ?version ?website ?logo ?img ?start
+                ?language ?license ?os ?cat ?gui ?dev
+                ?version ?website ?logo ?img ?start ?repo ?fsd
 WHERE {
   {
    ?floss p:P31/ps:P31/wdt:P279* wd:Q506883.
@@ -56,11 +57,14 @@ WHERE {
   OPTIONAL { ?floss wdt:P154 ?logo .}
   OPTIONAL { ?floss wdt:P18  ?img .}
   OPTIONAL { ?floss wdt:P571 ?start .}
+  OPTIONAL { ?floss wdt:P1324 ?repo .}
+  OPTIONAL { ?floss wdt:P2537 ?fsd .}
 
   OPTIONAL { ?floss wdt:P275 ?license .}
   OPTIONAL { ?floss wdt:P306 ?os .}
   OPTIONAL { ?floss wdt:P277 ?language .}
   OPTIONAL { ?floss wdt:P1414 ?gui .}
+  OPTIONAL { ?floss wdt:P178 ?dev .}
 
   OPTIONAL { 
   ?floss wdt:P31 ?cat.
@@ -95,6 +99,13 @@ queryGui :: String
 queryGui = [str|
 SELECT DISTINCT ?gui ?guiLabel WHERE {
   ?free_software wdt:P1414 ?gui.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+} |]
+
+queryDev :: String
+queryDev = [str|
+SELECT DISTINCT ?dev ?devLabel WHERE {
+  ?free_software wdt:P178 ?dev.
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 } |]
 

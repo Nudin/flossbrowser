@@ -47,6 +47,7 @@ insertall (Collection l) = do
     zipWithM_ (insertsoftware' ProjectOs)      (qid <$> l) (os      <$> l)
     zipWithM_ (insertsoftware' ProjectGui)     (qid <$> l) (gui     <$> l)
     zipWithM_ (insertsoftware' ProjectCat)     (qid <$> l) (cat     <$> l)
+    zipWithM_ (insertsoftware' ProjectDev)     (qid <$> l) (dev     <$> l)
 insertall _  = return ()
 
 insertItemLabelList
@@ -68,6 +69,7 @@ initDB = runSqlite sqliteDB $ do
     insertLabels manager queryOs      Os
     insertLabels manager queryGui     Gui
     insertLabels manager queryCat     Cat
+    insertLabels manager queryDev     Dev
 
     col <- liftIO  $ getResource query manager
     insertall col
