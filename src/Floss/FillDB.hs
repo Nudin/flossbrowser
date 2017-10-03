@@ -3,7 +3,7 @@
              , MultiParamTypeClasses
              , TypeFamilies #-}
 
-module Floss.FillDB where
+module Floss.FillDB(initDB) where
 
 import Control.Monad
 import Control.Monad.IO.Class

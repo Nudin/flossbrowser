@@ -30,9 +30,11 @@ str  = qqUndef { quoteExp = stringE }
 normalizestr :: Text -> Text
 normalizestr "" = ""
 normalizestr t  = cons (C.toUpper $ T.head t) (T.tail t)
+{-# INLINABLE normalizestr #-}
 
 http2https :: Text -> Text
 http2https = T.replace "http://" "https://"
+{-# INLINABLE http2https #-}
 
 -- Convert String to WikidataItemID
 -- fallback -1
@@ -41,8 +43,9 @@ strtoid = strtoid_ where
   strtoid_ :: String -> Int
   strtoid_ "" = -1
   strtoid_ s = read s
+{-# INLINABLE strtoid #-}
 
 -- Convert IRI of Wikidata-Item to an Int-ID
 urltoid :: String -> WikidataItemID
 urltoid = strtoid . Prelude.drop 32
-
+{-# INLINABLE urltoid #-}
