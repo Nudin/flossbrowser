@@ -1,17 +1,20 @@
 CC=ghc
 TMPDIRNAME=build
-FLAGS=-Wall -hidir $(TMPDIRNAME) -odir $(TMPDIRNAME)
-SRC=CreateDB.hs
-.PHONY: purge
-.PHONY: all
+override FLAGS+=-Wall -hidir $(TMPDIRNAME) -odir $(TMPDIRNAME) -O2
+SRC_B=CreateDB.hs
+SRC_F=Browser.hs
+DEPS=Floss/DB.hs Floss/FillDB.hs Floss/Genlists.hs \
+     Floss/Parser.hs Floss/Query.hs Floss/Str.hs Floss/Types.hs
+
 
 all: tmpdir CreateDB Browser
+.PHONY: all
 
-Browser: Browser.hs
-	$(CC) $(FLAGS) Browser.hs
+Browser: $(SRC_F) $(DEPS)
+	$(CC) $(FLAGS) $(SRC_F)
 
-CreateDB: $(SRC)
-	$(CC) $(FLAGS) $(SRC)
+CreateDB: $(SRC_B) $(DEPS)
+	$(CC) $(FLAGS) $(SRC_B)
 
 clean:
 	-@rm $(shell find . -type f -name "*.o")
@@ -25,6 +28,10 @@ purge: clean
 	-rm flossbrowser.sqlite-wal
 	-rm client_session_key.aes
 	-rm -r $(TMPDIRNAME)
+.PHONY: purge
 
-tmpdir:
+tmpdir: $(TMPDIRNAME)
+.PHONY: tmpdir
+
+$(TMPDIRNAME):
 	mkdir -p $(TMPDIRNAME)
