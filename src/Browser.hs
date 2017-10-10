@@ -129,7 +129,7 @@ footer = do
       [hamlet|
         <div class="footer">
           <p>Flossbrowser is still alpha! URLs will change! You can help!
-            &nbsp;→&nbsp;<a href=@{HomeR}>Code
+            &nbsp;→&nbsp;<a href="https://gitlab.com/Nudin/flossbrowser">Code
       |]
 
 
@@ -328,7 +328,7 @@ readConfig = do
 server :: BrowserIO ()
 server = do
     env <- ask
-    static@(Static settings) <- liftIO $ static "static"
+    static@(Static _) <- liftIO $ static "static"
     let p = port env
     let r = root env
     liftIO $ runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug )
