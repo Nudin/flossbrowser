@@ -1,34 +1,40 @@
 <form action="#">
-    <label> Category&#32
+    <label>
+        <span .label> Category:
         <select name="cat" id="catchooser" onchange="filter()">
-            <option>-- all --
+            <option>
             $forall name <- tl
                     <option :(cat f == Just name):selected>
                           #{name}
-    <label> OS&#32
-        <select name="license" id="oschooser" onchange="filter()">
-            <option>-- all --
+    <label>
+        <span .label> Operating System:
+        <select name="OperatingSystem" id="oschooser" onchange="filter()">
+            <option>
             $forall name <- ol
                     <option :(os f == Just name):selected>
                           #{name}
-    <label> License&#32
+    <label>
+        <span .label> License:
         <select name="license" id="licensechooser" onchange="filter()">
-            <option>-- all --
+            <option>
             $forall name <- ll
                     <option :(license f == Just name):selected>
                           #{name}
-    <label> Programing language&#32
+    <label>
+        <span .label> Programing language:
         <select name="coding" id="codingchooser" onchange="filter()">
-            <option>-- all --
+            <option>
             $forall name <- cl
                     <option :(coding f == Just name):selected>
                           #{name}
-    <label> Gui&#32
+    <label>
+        <span .label> Gui:
         <select name="gui" id="guichooser" onchange="filter()">
-            <option>-- all --
+            <option>
             $forall name <- gl
                     <option :(gui f == Just name):selected>
                           #{name}
 
-<input type="text" #search>
-<button type="button" onclick="dosearch()">Search
+<div #searchform>
+    <input type="text" #search>
+    <button type="button" onclick="dosearch()">Search

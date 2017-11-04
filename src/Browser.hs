@@ -176,6 +176,9 @@ chooser f = do
     toWidget $(hamletFile "./templates/chooser.hamlet")
     toWidget $(juliusFile "./templates/chooser.julius")
     toWidget $(luciusFile "./templates/chooser.lucius")
+    addScript $ StaticR js_jquery_3_2_1_min_js
+    addScript $ StaticR js_select2_min_js
+    addStylesheet $ StaticR css_select2_min_css
 
 -- Run a query against the database to find all softwares matching
 -- the given filter-options, all filters are optional.

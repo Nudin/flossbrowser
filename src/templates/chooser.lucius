@@ -1,25 +1,15 @@
 label {
     display: inline-block;
+    padding: 0.5em;
 }
 
-select {
-    border: 1px solid #ccc;
-    width: 170px;
-    border-radius: 5px;
-    overflow: hidden;
-    background-color: rgb(250, 250, 250);
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20276.7%20153%22%20enable-background%3D%22new%200%200%20276.7%20153%22%3E%3Cstyle%3E.arrow%7Bfill%3A%23777777%3B%7D%3C%2Fstyle%3E%3Cpath%20class%3D%22arrow%22%20d%3D%22M276.7%200H0l138.2%20153z%22%20%2F%3E%3C%2Fsvg%3E");
-    background-position: right 10px center;
-    background-repeat: no-repeat;
-    background-size: auto 20%;
-    -moz-appearance: none;
-    -webkit-appearance: none;
-    appearance: none;
-    margin-right: 1em;
-    margin-bottom: 1em;
+form {
 }
 
-select:focus {
-    outline: none;
+.label {
+    min-width: 5em;
+    display: inline-block;
 }
 
+#searchform {
+}

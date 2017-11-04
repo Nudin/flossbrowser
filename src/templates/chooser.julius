@@ -3,7 +3,7 @@ function encode(s) {
 }
 
 function buildurl(s) {
-    if (s == "-- all --")
+    if (s == "")
         return "/*";
     else
         return ("/" + s);
@@ -32,3 +32,12 @@ function dosearch() {
     newurl=@{FilterR []} + "/search/" + searchstr;
     window.location.href = newurl;
 }
+
+$(document).ready(function() {
+    $('select').select2({
+    placeholder: "Select to filter",
+    allowClear: true,
+    width: "20em",
+    theme: "classic"
+});
+});
