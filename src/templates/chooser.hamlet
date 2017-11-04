@@ -36,5 +36,5 @@
                           #{name}
 
 <div #searchform>
-    <input type="text" #search>
+    <input type="text" #search onkeydown="onkeypressed(this)">
     <button type="button" onclick="dosearch()">Search

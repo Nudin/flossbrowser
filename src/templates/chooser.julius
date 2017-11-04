@@ -33,6 +33,12 @@ function dosearch() {
     window.location.href = newurl;
 }
 
+function onkeypressed(ele) {
+    if(event.key === 'Enter') {
+        dosearch()
+    }
+}
+
 $(document).ready(function() {
     $('select').select2({
     placeholder: "Select to filter",
