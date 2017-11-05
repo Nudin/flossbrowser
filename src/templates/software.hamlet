@@ -50,4 +50,7 @@
             <a href="#{http2https pic}" data-jslghtbx="#{http2https pic}">
                 <img .picture src="#{Data.Text.append (http2https pic) "?width=120"}">
 
+      $maybe vers <- projectVersion project
+          <iframe #timeline style="width: 80vw; height: 50vh; border: none;" src="https://query.wikidata.org/embed.html#%23defaultView%3ATimeline%0ASELECT%20DISTINCT%20%3Fversion%20%3Fvdate%20WHERE%20%0A%7B%0A%20%20wd%3AQ#{wikidataid}%20p%3AP348%20%3Fv.%0A%20%20%3Fv%20ps%3AP348%20%3Fversion.%0A%20%20%3Fv%20pq%3AP577%20%3Fvdate.%0A%7D" referrerpolicy="origin" sandbox="allow-scripts allow-same-origin allow-popups">
+
 ^{footer}
