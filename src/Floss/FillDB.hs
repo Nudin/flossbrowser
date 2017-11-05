@@ -61,8 +61,8 @@ insertItemLabelList _     _ = return ()
 
 -- Receive, parse and store the data from WikiData
 initDB :: IO ()
-initDB = runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug ) $
-         withDBPool $ \pool -> liftIO $ flip runSqlPersistMPool pool $ do
+initDB dbType = runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug ) $
+         withDBPool dbType $ \pool -> liftIO $ flip runSqlPersistMPool pool $ do
     runMigration migrateAll
     manager <- liftIO $ newManager tlsManagerSettings
     insertLabels manager queryLicense License

@@ -13,8 +13,8 @@ module Floss.DB where
 import Data.Text
 import Data.Time
 import Database.Persist
-import Database.Persist.Sqlite
-import Database.Persist.MySQL
+import qualified Database.Persist.Sqlite as Sqlite
+import qualified Database.Persist.MySQL  as MySQL
 import Database.Persist.TH
 import GHC.Int
 
@@ -25,21 +25,22 @@ import Data.Pool
 
 import Floss.Types
 
-
 sqliteDB :: Text
 sqliteDB = "file:flossbrowser.sqlite"
 
 sqliteDBro :: Text
 sqliteDBro = append sqliteDB "?mode=ro"
 
-connectionInfo :: MySQLConnectInfo
+connectionInfo :: MySQL.MySQLConnectInfo
 connectionInfo = mkMySQLConnectInfo "localhost" "username" "password" "flossbrowser"
 
-withDBPool :: (MonadBaseControl IO m, MonadIO m, MonadLogger m,
-                 BaseBackend backend ~ SqlBackend, IsSqlBackend backend)
-             => (Data.Pool.Pool backend -> m a) -> m a
---withDBPool = withMySQLPool connectionInfo 100
-withDBPool = withSqlitePool sqliteDBro 100
+{-withDBPool :: BackendType -> (MonadBaseControl IO m, MonadIO m, MonadLogger m,-}
+                 {-BaseBackend backend ~ SqlBackend, IsSqlBackend backend)-}
+             {-=> (Data.Pool.Pool backend -> m a) -> m a-}
+withDBPool sqlt =
+    case sqlt of
+        Sqlite -> withSqlitePool sqliteDBro 100
+        MySQL  -> withMySQLPool connectionInfo 100
 
 -- DB Schema
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
@@ -98,6 +99,15 @@ ProjectDev
     deriving Show
 |]
 
+class SqlKey where
+    toSqlKey :: Integral a => a -> m record
+
+instance SqlKey Database.Persist.Sqlite.ToBackendKey Database.Persist.Sqlite.SqlBackend
+    where toSqlKey = Sqlite.toSqlKey
+
+instance SqlKey Database.Persist.MySQL.ToBackendKey Database.Persist.MySQL.SqlBackend
+    where toSqlKey = MySQL.toSqlKey
+
 -- Deduce a db key from a WikiData Qxxxxx identifier
-qidtokey :: (ToBackendKey SqlBackend record, Integral a) => a -> Key record
+qidtokey :: (SqlKey record, Integral a) => a -> m record
 qidtokey qid = toSqlKey (fromIntegral qid :: Int64)

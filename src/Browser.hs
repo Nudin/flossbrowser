@@ -15,6 +15,7 @@
 import           Floss.DB
 import           Floss.Genlists
 import           Floss.Str
+import           Floss.Config (readConfig)
 
 import           Text.Hamlet
 import           Text.Julius
@@ -41,21 +42,17 @@ data Browser = Browser {
   connectionpool :: ConnectionPool,
   getStatic      :: Static
 }
-data BrowserEnv = BrowserEnv {
-  port :: Int,
-  root :: Text
-}
 
-type BrowserT m = ReaderT BrowserEnv m
+type BrowserT m = ReaderT FlossEnv m
 type BrowserIO  = BrowserT IO
 
 instance Yesod Browser where
   approot = ApprootMaster myApproot
   -- TODO: clean up this messy function
-  cleanPath site s = do
+  cleanPath site s =
       if corrected == s'
            then Right $ L.map dropDash s'
-           else Left  $ corrected
+           else Left corrected
       where
         s' = dropprefix s
         corrected = L.filter (not . Data.Text.null) s'
@@ -304,22 +301,8 @@ getFaviconR = sendFile "image/vnd.microsoft.icon" "favicon.ico"
 
 
 -- This application runs in a reader / IO transformer stack
-runBrowserT :: Monad m => BrowserEnv -> BrowserT m a -> m a
+runBrowserT :: Monad m => FlossEnv -> BrowserT m a -> m a
 runBrowserT = flip runReaderT
-
-handleConfError :: Show t => t -> IO ()
-handleConfError e = print $ "Error reading config file: " ++ show e
-
-confSettings :: AutoConfig
-confSettings  = AutoConfig { interval = 10,
-                             onError  = handleConfError }
-
-readConfig :: IO BrowserEnv
-readConfig = do
-    (conf, _) <- autoReload confSettings [Required "./flossrc"]
-    p <- Conf.lookupDefault 3000 conf "port"
-    r <- Conf.lookupDefault ""  conf "root"
-    return BrowserEnv { port = p, root = r }
 
 server :: BrowserIO ()
 server = do
@@ -327,8 +310,9 @@ server = do
     static@(Static _) <- liftIO $ static "static"
     let p = port env
     let r = root env
+    let dbt = backend env
     liftIO $ runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug )
-           $ withDBPool $ \pool -> liftIO $ warp p $ Browser r pool static
+           $ withDBPool dbt $ \pool -> liftIO $ warp p $ Browser r pool static
     return ()
 
 
