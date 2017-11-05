@@ -12,7 +12,7 @@ import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Resource.Internal
 import Data.Text
 import Database.Persist
-import Database.Persist.Sqlite
+import Database.Persist.MySQL
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 
@@ -61,7 +61,9 @@ insertItemLabelList _     _ = return ()
 
 -- Receive, parse and store the data from WikiData
 initDB :: IO ()
-initDB = runSqlite sqliteDB $ do
+initDB = runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug ) $
+    withMySQLPool connectionInfo 10 $ \pool -> liftIO $ 
+    flip runSqlPersistMPool pool $ do
     runMigration migrateAll
     manager <- liftIO $ newManager tlsManagerSettings
     insertLabels manager queryLicense License

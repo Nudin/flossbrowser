@@ -14,6 +14,7 @@ import Data.Text
 import Data.Time
 import Database.Persist
 import Database.Persist.Sqlite
+import Database.Persist.MySQL
 import Database.Persist.TH
 import GHC.Int
 
@@ -25,6 +26,9 @@ sqliteDB = "file:flossbrowser.sqlite"
 
 sqliteDBro :: Text
 sqliteDBro = append sqliteDB "?mode=ro"
+
+connectionInfo :: MySQLConnectInfo
+connectionInfo = mkMySQLConnectInfo "localhost" "username" "password" "flossbrowser"
 
 -- DB Schema
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
