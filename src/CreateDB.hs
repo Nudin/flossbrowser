@@ -1,5 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
+import Floss.Types
 import Floss.FillDB
 import Control.Exception
 import Control.Monad.Reader

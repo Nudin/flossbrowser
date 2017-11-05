@@ -35,13 +35,13 @@ sqliteDBro = append sqliteDB "?mode=ro"
 connectionInfo :: MySQL.MySQLConnectInfo
 connectionInfo = MySQL.mkMySQLConnectInfo "localhost" "username" "password" "flossbrowser"
 
-{-withDBPool :: BackendType -> (MonadBaseControl IO m, MonadIO m, MonadLogger m,-}
-                 {-BaseBackend backend ~ SqlBackend, IsSqlBackend backend)-}
-             {-=> (Data.Pool.Pool backend -> m a) -> m a-}
-withDBPool sqlt =
+withDBPool :: (MonadBaseControl IO m, MonadIO m, MonadLogger m,
+              BaseBackend backend ~ SqlBackend, IsSqlBackend backend)
+              => BackendType -> (Data.Pool.Pool backend -> m a) -> m a
+withDBPool sqlt f =
     case sqlt of
-        Sqlite -> Sqlite.withSqlitePool sqliteDBro 100
-        MySQL  -> MySQL.withMySQLPool connectionInfo 100
+      Sqlite -> Sqlite.withSqlitePool sqliteDBro 100 f
+      MySQL  -> MySQL.withMySQLPool connectionInfo 100 f
 
 -- DB Schema
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|

@@ -16,6 +16,7 @@ import Database.Persist.Sql
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 
+import Floss.Types
 import Floss.DB
 import Floss.Parser
 import Floss.Query
@@ -60,7 +61,7 @@ insertItemLabelList _     _ = return ()
 
 
 -- Receive, parse and store the data from WikiData
-initDB :: IO ()
+initDB :: BackendType -> IO ()
 initDB dbType = runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug ) $
          withDBPool dbType $ \pool -> liftIO $ flip runSqlPersistMPool pool $ do
     runMigration migrateAll
