@@ -32,7 +32,7 @@ sqliteDBro :: Text
 sqliteDBro = append sqliteDB "?mode=ro"
 
 connectionInfo :: MySQL.MySQLConnectInfo
-connectionInfo = mkMySQLConnectInfo "localhost" "username" "password" "flossbrowser"
+connectionInfo = MySQL.mkMySQLConnectInfo "localhost" "username" "password" "flossbrowser"
 
 {-withDBPool :: BackendType -> (MonadBaseControl IO m, MonadIO m, MonadLogger m,-}
                  {-BaseBackend backend ~ SqlBackend, IsSqlBackend backend)-}
@@ -40,7 +40,7 @@ connectionInfo = mkMySQLConnectInfo "localhost" "username" "password" "flossbrow
 withDBPool sqlt =
     case sqlt of
         Sqlite -> withSqlitePool sqliteDBro 100
-        MySQL  -> withMySQLPool connectionInfo 100
+        MySQL  -> MySQL.withMySQLPool connectionInfo 100
 
 -- DB Schema
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
@@ -99,13 +99,13 @@ ProjectDev
     deriving Show
 |]
 
-class SqlKey where
+class SqlKey record where
     toSqlKey :: Integral a => a -> m record
 
-instance SqlKey Database.Persist.Sqlite.ToBackendKey Database.Persist.Sqlite.SqlBackend
+instance SqlKey (Sqlite.ToBackendKey Sqlite.SqlBackend)
     where toSqlKey = Sqlite.toSqlKey
 
-instance SqlKey Database.Persist.MySQL.ToBackendKey Database.Persist.MySQL.SqlBackend
+instance SqlKey (MySQL.ToBackendKey MySQL.SqlBackend)
     where toSqlKey = MySQL.toSqlKey
 
 -- Deduce a db key from a WikiData Qxxxxx identifier
