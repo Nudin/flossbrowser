@@ -17,6 +17,7 @@ The service is already deployed at:
       yesod-static
       yesod-persistent
       persistent-sqlite
+      persistent-mysql-haskell
       esqueleto
       http-client
       http-client-tls
