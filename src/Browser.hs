@@ -318,14 +318,9 @@ readConfig :: IO BrowserEnv
 readConfig = do
     (conf, _) <- autoReload confSettings [Required "./flossrc"]
     mbPort <- Conf.lookup conf "port" :: IO (Maybe Int)
-    let p = case mbPort of
-                (Just v) -> v
-                Nothing  -> 3000
     mbRoot <- Conf.lookup conf "root" :: IO (Maybe Text)
-    let r = case mbRoot of
-                (Just v) -> v
-                Nothing  -> ""
-    return BrowserEnv { port = p, root = r }
+    return BrowserEnv { port = fromMaybe 3000 mbPort,
+                        root = fromMaybe "" mbRoot }
 
 server :: BrowserIO ()
 server = do
