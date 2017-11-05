@@ -317,10 +317,9 @@ confSettings  = AutoConfig { interval = 10,
 readConfig :: IO BrowserEnv
 readConfig = do
     (conf, _) <- autoReload confSettings [Required "./flossrc"]
-    mbPort <- Conf.lookup conf "port" :: IO (Maybe Int)
-    mbRoot <- Conf.lookup conf "root" :: IO (Maybe Text)
-    return BrowserEnv { port = fromMaybe 3000 mbPort,
-                        root = fromMaybe "" mbRoot }
+    p <- Conf.lookupDefault 3000 conf "port"
+    r <- Conf.lookupDefault ""  conf "root"
+    return BrowserEnv { port = p, root = r }
 
 server :: BrowserIO ()
 server = do
