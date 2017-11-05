@@ -13,8 +13,9 @@ module Floss.DB where
 import Data.Text
 import Data.Time
 import Database.Persist
-import qualified Database.Persist.Sqlite as Sqlite
-import qualified Database.Persist.MySQL  as MySQL
+import Database.Persist.Sql
+import qualified Database.Persist.Sqlite as Sqlite hiding (toSqlKey)
+import qualified Database.Persist.MySQL  as MySQL hiding (toSqlKey)
 import Database.Persist.TH
 import GHC.Int
 
@@ -39,7 +40,7 @@ connectionInfo = MySQL.mkMySQLConnectInfo "localhost" "username" "password" "flo
              {-=> (Data.Pool.Pool backend -> m a) -> m a-}
 withDBPool sqlt =
     case sqlt of
-        Sqlite -> withSqlitePool sqliteDBro 100
+        Sqlite -> Sqlite.withSqlitePool sqliteDBro 100
         MySQL  -> MySQL.withMySQLPool connectionInfo 100
 
 -- DB Schema
@@ -99,15 +100,7 @@ ProjectDev
     deriving Show
 |]
 
-class SqlKey record where
-    toSqlKey :: Integral a => a -> m record
-
-instance SqlKey (Sqlite.ToBackendKey Sqlite.SqlBackend)
-    where toSqlKey = Sqlite.toSqlKey
-
-instance SqlKey (MySQL.ToBackendKey MySQL.SqlBackend)
-    where toSqlKey = MySQL.toSqlKey
 
 -- Deduce a db key from a WikiData Qxxxxx identifier
-qidtokey :: (SqlKey record, Integral a) => a -> m record
+qidtokey :: (ToBackendKey SqlBackend record, Integral a) => a -> Key record
 qidtokey qid = toSqlKey (fromIntegral qid :: Int64)
