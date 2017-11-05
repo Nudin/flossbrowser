@@ -26,8 +26,6 @@ import           Data.List               as L
 import           Data.Text
 import           Database.Esqueleto
 import qualified Database.Persist        as P
---import qualified Database.Persist.Sqlite as P
-import qualified Database.Persist.MySQL  as P
 
 import           Control.Monad
 import           Control.Monad.Logger    (runStderrLoggingT, filterLogger)
@@ -336,8 +334,7 @@ server = do
     let p = port env
     let r = root env
     liftIO $ runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug )
-           $ dBConnection
-           $ \pool -> liftIO $ warp p $ Browser r pool static
+           $ withDBPool $ \pool -> liftIO $ warp p $ Browser r pool static
     return ()
 
 

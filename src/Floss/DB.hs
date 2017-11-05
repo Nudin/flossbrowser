@@ -18,6 +18,11 @@ import Database.Persist.MySQL
 import Database.Persist.TH
 import GHC.Int
 
+import Control.Monad.IO.Class
+import Control.Monad.Logger
+import Control.Monad.Trans.Control
+import Data.Pool
+
 import Floss.Types
 
 
@@ -29,6 +34,12 @@ sqliteDBro = append sqliteDB "?mode=ro"
 
 connectionInfo :: MySQLConnectInfo
 connectionInfo = mkMySQLConnectInfo "localhost" "username" "password" "flossbrowser"
+
+withDBPool :: (MonadBaseControl IO m, MonadIO m, MonadLogger m,
+                 BaseBackend backend ~ SqlBackend, IsSqlBackend backend)
+             => (Data.Pool.Pool backend -> m a) -> m a
+--withDBPool = withMySQLPool connectionInfo 100
+withDBPool = withSqlitePool sqliteDBro 100
 
 -- DB Schema
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
