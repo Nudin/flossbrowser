@@ -12,10 +12,11 @@ import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Resource.Internal
 import Data.Text
 import Database.Persist
-import Database.Persist.Sqlite
+import Database.Persist.Sql
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 
+import Floss.Types
 import Floss.DB
 import Floss.Parser
 import Floss.Query
@@ -60,8 +61,9 @@ insertItemLabelList _     _ = return ()
 
 
 -- Receive, parse and store the data from WikiData
-initDB :: IO ()
-initDB = runSqlite sqliteDB $ do
+initDB :: FlossEnv -> IO ()
+initDB dbType = runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug ) $
+         withDBPool dbType $ \pool -> liftIO $ flip runSqlPersistMPool pool $ do
     runMigration migrateAll
     manager <- liftIO $ newManager tlsManagerSettings
     insertLabels manager queryLicense License

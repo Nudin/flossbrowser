@@ -13,18 +13,31 @@ module Floss.DB where
 import Data.Text
 import Data.Time
 import Database.Persist
-import Database.Persist.Sqlite
+import Database.Persist.Sql
+import qualified Database.Persist.Sqlite as Sqlite hiding (toSqlKey)
+import qualified Database.Persist.MySQL  as MySQL hiding (toSqlKey)
 import Database.Persist.TH
 import GHC.Int
 
+import Control.Monad.IO.Class
+import Control.Monad.Logger
+import Control.Monad.Trans.Control
+import Data.Pool
+
 import Floss.Types
 
-
-sqliteDB :: Text
-sqliteDB = "file:flossbrowser.sqlite"
-
-sqliteDBro :: Text
-sqliteDBro = append sqliteDB "?mode=ro"
+withDBPool :: (MonadBaseControl IO m, MonadIO m, MonadLogger m,
+              BaseBackend backend ~ SqlBackend, IsSqlBackend backend)
+              => FlossEnv -> (Data.Pool.Pool backend -> m a) -> m a
+withDBPool env f =
+    case backend env of
+      Sqlite -> Sqlite.withSqlitePool (sqlFile env) 100 f
+      MySQL  -> do
+          let con = MySQL.mkMySQLConnectInfo (sqlHost env)
+                                             (sqlUser env)
+                                             (sqlPassword env)
+                                             (sqlDBName env)
+          MySQL.withMySQLPool con 100 f
 
 -- DB Schema
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
@@ -82,6 +95,7 @@ ProjectDev
     xId DevId
     deriving Show
 |]
+
 
 -- Deduce a db key from a WikiData Qxxxxx identifier
 qidtokey :: (ToBackendKey SqlBackend record, Integral a) => a -> Key record

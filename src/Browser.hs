@@ -12,9 +12,11 @@
 -- To avoid warning for unused yesod-generated resources
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
+import           Floss.Types
 import           Floss.DB
 import           Floss.Genlists
 import           Floss.Str
+import           Floss.Config (readConfig)
 
 import           Text.Hamlet
 import           Text.Julius
@@ -26,13 +28,10 @@ import           Data.List               as L
 import           Data.Text
 import           Database.Esqueleto
 import qualified Database.Persist        as P
-import qualified Database.Persist.Sqlite as P
 
 import           Control.Monad
 import           Control.Monad.Logger    (runStderrLoggingT, filterLogger)
 import           Control.Monad.Reader
-import           Data.Configurator       as Conf
-import           Data.Configurator.Types as Conf
 import           Data.Maybe
 
 staticFiles "static"
@@ -42,21 +41,17 @@ data Browser = Browser {
   connectionpool :: ConnectionPool,
   getStatic      :: Static
 }
-data BrowserEnv = BrowserEnv {
-  port :: Int,
-  root :: Text
-}
 
-type BrowserT m = ReaderT BrowserEnv m
+type BrowserT m = ReaderT FlossEnv m
 type BrowserIO  = BrowserT IO
 
 instance Yesod Browser where
   approot = ApprootMaster myApproot
   -- TODO: clean up this messy function
-  cleanPath site s = do
+  cleanPath site s =
       if corrected == s'
            then Right $ L.map dropDash s'
-           else Left  $ corrected
+           else Left corrected
       where
         s' = dropprefix s
         corrected = L.filter (not . Data.Text.null) s'
@@ -305,28 +300,8 @@ getFaviconR = sendFile "image/vnd.microsoft.icon" "favicon.ico"
 
 
 -- This application runs in a reader / IO transformer stack
-runBrowserT :: Monad m => BrowserEnv -> BrowserT m a -> m a
+runBrowserT :: Monad m => FlossEnv -> BrowserT m a -> m a
 runBrowserT = flip runReaderT
-
-handleConfError :: Show t => t -> IO ()
-handleConfError e = print $ "Error reading config file: " ++ show e
-
-confSettings :: AutoConfig
-confSettings  = AutoConfig { interval = 10,
-                             onError  = handleConfError }
-
-readConfig :: IO BrowserEnv
-readConfig = do
-    (conf, _) <- autoReload confSettings [Required "./flossrc"]
-    mbPort <- Conf.lookup conf "port" :: IO (Maybe Int)
-    let p = case mbPort of
-                (Just v) -> v
-                Nothing  -> 3000
-    mbRoot <- Conf.lookup conf "root" :: IO (Maybe Text)
-    let r = case mbRoot of
-                (Just v) -> v
-                Nothing  -> ""
-    return BrowserEnv { port = p, root = r }
 
 server :: BrowserIO ()
 server = do
@@ -335,8 +310,7 @@ server = do
     let p = port env
     let r = root env
     liftIO $ runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug )
-           $ P.withSqlitePool sqliteDBro 100
-           $ \pool -> liftIO $ warp p $ Browser r pool static
+           $ withDBPool env $ \pool -> liftIO $ warp p $ Browser r pool static
     return ()
 
 
