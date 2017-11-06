@@ -8,11 +8,12 @@
 	- [▄] [[https://query.wikidata.org/#SELECT DISTINCT %3Fcategory %3Fsubcat WHERE {%0A {%0A %3Ffloss p%3AP31%2Fps%3AP31%2Fwdt%3AP279* wd%3AQ341.%0A %3Ffloss wdt%3AP31 %3Fcategory.%0A %3Fsubcat wdt%3AP279%2B %3Fcategory.%0A }%0A%0A}|Query]]
 - [-] Use hsparql?
 - [ ] Don't add duplicates to Crosstables
-- [ ] Remove t...-artefacts
+- [ ] Remove t...-artefacts (-> id=-1)
+- [✓] Add date of latest software-version
 
 = Frontend =
 - [▂] Performance
-	- [ ] Migrate from Sqlite to [[https://wikitech.wikimedia.org/wiki/Help:Toolforge/Database#User_databases|MariaDB]]
+	- [▅] Migrate from Sqlite to [[https://wikitech.wikimedia.org/wiki/Help:Toolforge/Database#User_databases|MariaDB]]
 	- [ ] Caching?
 	- [ ] DB-Index?
 - [ ] Display all info
@@ -24,15 +25,16 @@
 - [ ] Change SoftwareFilter to a safer type with record syntax
 - [ ] if two softwares by name show only one header/footer
 - [ ] make page work without js
-- [ ] Fix forms
+- [▄] Fix forms
 - [ ] ignore entries with id -1
 
 = Both/Other =
+- [ ] Show date of last update on site
 - [✓] list all dependencies
 - [ ] i18n
 - [ ] Show Wikipedia-Links
 - [ ] Better Name
-- [ ] Make Source Code public
+- [✓] Make Source Code public
 - [ ] Announce to Wikidata-Community
 - [ ] Domain
 - [ ] Design favicon

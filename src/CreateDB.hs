@@ -21,7 +21,7 @@ main = do
     config <- readConfig
     runDBCreatorT config dbCreation
 
-runDBCreatorT :: Monad m => DBCreatorEnv -> DBCreatorT m a -> m a
+runDBCreatorT :: Monad m => FlossEnv -> DBCreatorT m a -> m a
 runDBCreatorT = flip runReaderT
 
 dbCreation :: DBCreatorIO ()

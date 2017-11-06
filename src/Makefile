@@ -1,6 +1,6 @@
 CC=ghc
 TMPDIRNAME=build
-SANDBOX=-package-db .cabal-sandbox/x86_64-linux-ghc-8.0.2-packages.conf.d
+#SANDBOX=-package-db .cabal-sandbox/x86_64-linux-ghc-8.0.2-packages.conf.d
 override FLAGS+=-Wall -hidir $(TMPDIRNAME) -odir $(TMPDIRNAME) -O2 $(SANDBOX)
 SRC_B=CreateDB.hs
 SRC_F=Browser.hs

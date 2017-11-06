@@ -12,6 +12,7 @@
 -- To avoid warning for unused yesod-generated resources
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
+import           Floss.Types
 import           Floss.DB
 import           Floss.Genlists
 import           Floss.Str
