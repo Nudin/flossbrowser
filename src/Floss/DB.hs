@@ -29,9 +29,6 @@ import Floss.Types
 sqliteDB :: Text
 sqliteDB = "file:flossbrowser.sqlite"
 
-sqliteDBro :: Text
-sqliteDBro = append sqliteDB "?mode=ro"
-
 connectionInfo :: MySQL.MySQLConnectInfo
 connectionInfo = MySQL.mkMySQLConnectInfo "localhost" "username" "password" "flossbrowser"
 
@@ -40,7 +37,7 @@ withDBPool :: (MonadBaseControl IO m, MonadIO m, MonadLogger m,
               => BackendType -> (Data.Pool.Pool backend -> m a) -> m a
 withDBPool sqlt f =
     case sqlt of
-      Sqlite -> Sqlite.withSqlitePool sqliteDBro 100 f
+      Sqlite -> Sqlite.withSqlitePool sqliteDB 100 f
       MySQL  -> MySQL.withMySQLPool connectionInfo 100 f
 
 -- DB Schema
