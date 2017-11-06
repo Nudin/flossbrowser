@@ -2,15 +2,11 @@
 
 import Floss.Types
 import Floss.FillDB
+import Floss.Config (readConfig)
 import Control.Exception
 import Control.Monad.Reader
-
 import Network.HTTP.Client
 
-import Data.Configurator       as Conf
-import Data.Configurator.Types as Conf
-
-import Floss.Config (readConfig)
 
 type DBCreatorT m = ReaderT FlossEnv m
 type DBCreatorIO  = DBCreatorT IO

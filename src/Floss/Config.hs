@@ -2,7 +2,6 @@
 
 module Floss.Config where
 
-import Data.Text
 import Data.Configurator       as Conf
 import Data.Configurator.Types as Conf
 
@@ -15,14 +14,6 @@ confSettings  = AutoConfig { interval = 10,
 
 handleConfError :: Show t => t -> IO ()
 handleConfError e = print $ "Error reading config file: " ++ show e
-
--- Make BackendType parsable by Configurator
-instance Configured BackendType where
-    convert (String a) =
-        case toLower a of
-            "sqlite" -> Just Sqlite
-            "mysql"  -> Just MySQL
-    convert _ = Nothing
 
 
 readConfig :: IO FlossEnv

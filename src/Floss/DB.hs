@@ -11,7 +11,6 @@
 module Floss.DB where
 
 import Data.Text
-import Data.Text.Encoding
 import Data.Time
 import Database.Persist
 import Database.Persist.Sql
@@ -33,8 +32,12 @@ withDBPool :: (MonadBaseControl IO m, MonadIO m, MonadLogger m,
 withDBPool env f =
     case backend env of
       Sqlite -> Sqlite.withSqlitePool (sqlFile env) 100 f
-      MySQL  -> MySQL.withMySQLPool (MySQL.mkMySQLConnectInfo (sqlHost env)
-        (sqlUser env) (sqlPassword env) (sqlDBName env)) 100 f
+      MySQL  -> do
+          let con = MySQL.mkMySQLConnectInfo (sqlHost env)
+                                             (sqlUser env)
+                                             (sqlPassword env)
+                                             (sqlDBName env)
+          MySQL.withMySQLPool con 100 f
 
 -- DB Schema
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|

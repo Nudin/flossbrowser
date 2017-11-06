@@ -32,8 +32,6 @@ import qualified Database.Persist        as P
 import           Control.Monad
 import           Control.Monad.Logger    (runStderrLoggingT, filterLogger)
 import           Control.Monad.Reader
-import           Data.Configurator       as Conf
-import           Data.Configurator.Types as Conf
 import           Data.Maybe
 
 staticFiles "static"
