@@ -311,9 +311,8 @@ server = do
     static@(Static _) <- liftIO $ static "static"
     let p = port env
     let r = root env
-    let dbt = backend env
     liftIO $ runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug )
-           $ withDBPool dbt $ \pool -> liftIO $ warp p $ Browser r pool static
+           $ withDBPool env $ \pool -> liftIO $ warp p $ Browser r pool static
     return ()
 
 

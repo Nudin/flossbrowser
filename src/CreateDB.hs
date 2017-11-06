@@ -33,7 +33,7 @@ dbCreation = do
     let file   = sqlFile env
     let pw     = sqlPassword env
     let db     = sqlDBName env
-    liftIO $ initDB dbType `catch` (\(e :: HttpException) -> handleHTTPEx e)
+    liftIO $ initDB env `catch` (\(e :: HttpException) -> handleHTTPEx e)
 
 
 handleHTTPEx :: HttpException -> IO ()

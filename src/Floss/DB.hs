@@ -11,6 +11,7 @@
 module Floss.DB where
 
 import Data.Text
+import Data.Text.Encoding
 import Data.Time
 import Database.Persist
 import Database.Persist.Sql
@@ -26,19 +27,14 @@ import Data.Pool
 
 import Floss.Types
 
-sqliteDB :: Text
-sqliteDB = "file:flossbrowser.sqlite"
-
-connectionInfo :: MySQL.MySQLConnectInfo
-connectionInfo = MySQL.mkMySQLConnectInfo "localhost" "username" "password" "flossbrowser"
-
 withDBPool :: (MonadBaseControl IO m, MonadIO m, MonadLogger m,
               BaseBackend backend ~ SqlBackend, IsSqlBackend backend)
-              => BackendType -> (Data.Pool.Pool backend -> m a) -> m a
-withDBPool sqlt f =
-    case sqlt of
-      Sqlite -> Sqlite.withSqlitePool sqliteDB 100 f
-      MySQL  -> MySQL.withMySQLPool connectionInfo 100 f
+              => FlossEnv -> (Data.Pool.Pool backend -> m a) -> m a
+withDBPool env f =
+    case backend env of
+      Sqlite -> Sqlite.withSqlitePool (sqlFile env) 100 f
+      MySQL  -> MySQL.withMySQLPool (MySQL.mkMySQLConnectInfo (unpack $ sqlHost env)
+        (encodeUtf16BE $ sqlUser env) (encodeUtf16BE $ sqlPassword env) (encodeUtf16BE $ sqlDBName env)) 100 f
 
 -- DB Schema
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|

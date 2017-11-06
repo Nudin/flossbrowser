@@ -61,7 +61,7 @@ insertItemLabelList _     _ = return ()
 
 
 -- Receive, parse and store the data from WikiData
-initDB :: BackendType -> IO ()
+initDB :: FlossEnv -> IO ()
 initDB dbType = runStderrLoggingT $ filterLogger (\_ lvl -> lvl /= LevelDebug ) $
          withDBPool dbType $ \pool -> liftIO $ flip runSqlPersistMPool pool $ do
     runMigration migrateAll
