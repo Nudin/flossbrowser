@@ -19,20 +19,11 @@ type DBCreatorIO  = DBCreatorT IO
 main :: IO ()
 main = do
     config <- readConfig
-    runDBCreatorT config dbCreation
-
-runDBCreatorT :: Monad m => FlossEnv -> DBCreatorT m a -> m a
-runDBCreatorT = flip runReaderT
+    runReaderT dbCreation config 
 
 dbCreation :: DBCreatorIO ()
 dbCreation = do
     env <- ask
-    let dbType = backend env
-    let user   = sqlUser env
-    let host   = sqlHost env
-    let file   = sqlFile env
-    let pw     = sqlPassword env
-    let db     = sqlDBName env
     liftIO $ initDB env `catch` (\(e :: HttpException) -> handleHTTPEx e)
 
 

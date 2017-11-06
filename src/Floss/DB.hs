@@ -33,8 +33,8 @@ withDBPool :: (MonadBaseControl IO m, MonadIO m, MonadLogger m,
 withDBPool env f =
     case backend env of
       Sqlite -> Sqlite.withSqlitePool (sqlFile env) 100 f
-      MySQL  -> MySQL.withMySQLPool (MySQL.mkMySQLConnectInfo (unpack $ sqlHost env)
-        (encodeUtf16BE $ sqlUser env) (encodeUtf16BE $ sqlPassword env) (encodeUtf16BE $ sqlDBName env)) 100 f
+      MySQL  -> MySQL.withMySQLPool (MySQL.mkMySQLConnectInfo (sqlHost env)
+        (sqlUser env) (sqlPassword env) (sqlDBName env)) 100 f
 
 -- DB Schema
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|

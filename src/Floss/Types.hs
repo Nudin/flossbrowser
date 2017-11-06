@@ -1,6 +1,7 @@
 module Floss.Types where
 
 import Data.Text
+import Data.ByteString
 
 type URL = Text
 
@@ -13,9 +14,9 @@ data FlossEnv = FlossEnv {
   port        :: Int,
   root        :: Text,
   backend     :: BackendType,
-  sqlUser     :: Text,
-  sqlHost     :: Text,
+  sqlUser     :: ByteString,
+  sqlHost     :: String,
   sqlFile     :: Text,
-  sqlPassword :: Text,
-  sqlDBName   :: Text
+  sqlPassword :: ByteString,
+  sqlDBName   :: ByteString
 }
