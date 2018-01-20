@@ -16,7 +16,7 @@ html, body {
 }
 
 img.icon {
-   max-height: 1.5em;
+   max-height: 1.3em;
    vertical-align: bottom;
    margin-right: 0.3em;
 }
