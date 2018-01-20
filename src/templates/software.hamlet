@@ -17,7 +17,9 @@
       <ul>
         $maybe link <- (projectLink project)
             <li>
-                <a href="#{link}">Webseite
+                <a href="#{link}">
+                  <img .icon src=@{StaticR img_internet_svg} alt="Internet">
+                  Homepage
         $with (cats, os, licenses, codings, guis, devs) <-  results
             <li> <b>Operating System</b>:&nbsp;
                   #{os}
@@ -41,16 +43,19 @@
             <li> <b>Source code repo</b>:&nbsp;
                 <span .repo>#{repo}
         <li> <b>Link</b>:&nbsp;
-            <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata,
-            <a href="https://tools.wmflabs.org/reasonator/?q=Q#{wikidataid}">Wikidata Reasonator
+            <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">
+              <img .icon src=@{StaticR img_wikidata_svg} alt="Wikidata, "></a>
+            <a href="https://tools.wmflabs.org/reasonator/?q=Q#{wikidataid}">
+              <img .icon src=@{StaticR img_reasonator_svg} alt="Wikidata Reasonator, "></a>
             $maybe fsd <- projectFsd project
-              <a href="https://directory.fsf.org/wiki/#{fsd}">Free Software Directory
+              <a href="https://directory.fsf.org/wiki/#{fsd}">
+                <img .icon src=@{StaticR img_fsf_svg} alt="Free Software Directory"></a>
 
       $maybe pic <- projectImg project
             <a href="#{http2https pic}" data-jslghtbx="#{http2https pic}">
                 <img .picture src="#{Data.Text.append (http2https pic) "?width=120"}">
 
       $maybe vers <- projectVersion project
-          <iframe #timeline style="width: 80vw; height: 50vh; border: none;" src="https://query.wikidata.org/embed.html#%23defaultView%3ATimeline%0ASELECT%20DISTINCT%20%3Fversion%20%3Fvdate%20WHERE%20%0A%7B%0A%20%20wd%3AQ#{wikidataid}%20p%3AP348%20%3Fv.%0A%20%20%3Fv%20ps%3AP348%20%3Fversion.%0A%20%20%3Fv%20pq%3AP577%20%3Fvdate.%0A%7D" referrerpolicy="origin" sandbox="allow-scripts allow-same-origin allow-popups">
+          <iframe #timeline style="width: 90vw; height: 65vh; border: none;" src="https://query.wikidata.org/embed.html#%23defaultView%3ATimeline%0ASELECT%20DISTINCT%20%3Fversion%20%3Fvdate%20%3Flabel%20WHERE%20%0A%7B%0A%20%20wd%3AQ#{wikidataid}%20p%3AP348%20%3Fv.%0A%20%20%3Fv%20ps%3AP348%20%3Fversion.%0A%20%20%3Fv%20pq%3AP577%20%3Fvdate.%0A%20%20OPTIONAL%20%7B%0A%20%20%20%20%3Fv%20pq%3AP548%20%3Fstate.%0A%20%20%20%20%3Fstate%20rdfs%3Alabel%20%3Flabel%20filter%20%28lang%28%3Flabel%29%20%3D%20%22en%22%29.%0A%20%20%20%20%7D%0A%7D%20" referrerpolicy="origin" sandbox="allow-scripts allow-same-origin allow-popups">
 
 ^{footer}

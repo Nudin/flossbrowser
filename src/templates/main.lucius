@@ -14,3 +14,9 @@ html, body {
 .notitle a {
     color: gray;
 }
+
+img.icon {
+   max-height: 1.5em;
+   vertical-align: bottom;
+   margin-right: 0.3em;
+}

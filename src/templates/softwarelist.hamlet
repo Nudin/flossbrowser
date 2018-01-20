@@ -27,9 +27,13 @@
                     <ul>
                         $maybe link <- (projectLink project)
                             <li>
-                                <a href="#{link}">Webseite
+                                <a href="#{link}">
+                                  <img .icon src=@{StaticR img_internet_svg} alt="Internet">
+                                  Webseite
                         <li>
-                            <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">Wikidata
+                            <a href="https://www.wikidata.org/wiki/Q#{wikidataid}">
+                              <img .icon src=@{StaticR img_wikidata_svg} alt="Wikidata">
+                              Wikidata
     $else
         <h2> No Projects matching your criteria found
 
